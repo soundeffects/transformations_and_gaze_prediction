@@ -1,0 +1,10 @@
+[project]
+name = "deepgaze-predict"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.9, <3.10"
+dependencies = [
+    "scipy>=1.13.1",
+    "deepgaze_pytorch @ git+https://github.com/matthias-k/DeepGaze.git"
+]

@@ -1,0 +1,3 @@
+[submodule "unisal_predict/unisal"]
+	path = unisal_predict/unisal
+	url = https://github.com/rdroste/unisal
