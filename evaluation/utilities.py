@@ -4,57 +4,7 @@ from numpy import array, exp, load, ndarray, float32
 from PIL import Image
 from pathlib import Path
 
-directories = [
-    "../data/Boundary",
-    "../data/Compression_1",
-    "../data/Compression_2",
-    "../data/ContrastChange_1",
-    "../data/ContrastChange_2",
-    "../data/Cropping_1",
-    "../data/Cropping_2",
-    "../data/Inversion",
-    "../data/Mirroring",
-    "../data/MotionBlur_1",
-    "../data/MotionBlur_2",
-    "../data/Noise_1",
-    "../data/Noise_2",
-    "../data/Reference",
-    "../data/Rotation_1",
-    "../data/Rotation_2",
-    "../data/Shearing_1",
-    "../data/Shearing_2",
-    "../data/Shearing_3",
-]
 
-def to_png(paths: list[Path], delete_original: bool = False) -> None:
-    """
-    Convert a set of images to PNG format.
-    """
-    for path in paths:
-        with Image.open(path) as img:
-            img.save(path.with_suffix('.png'), 'PNG')
-        if delete_original:
-            path.unlink()
-
-def report_missing() -> None:
-    """
-    Scan the dataset for any missing image files, saliency maps, or
-    fixation maps.
-    """
-    for directory in directories:
-        for image_number in range(1, 101):
-            if not (Path(directory) / "deepgaze" / f"{image_number}.npy").exists():
-                print(f"Missing deepgaze saliency map for {image_number} in {directory}")
-            if not (Path(directory) / "fixations" / f"{image_number}.png").exists():
-                print(f"Missing fixation map for {image_number} in {directory}")
-            if not (Path(directory) / "images" / f"{image_number}.png").exists():
-                print(f"Missing image {image_number} in {directory}")
-            if not (Path(directory) / "real" / f"{image_number}.png").exists():
-                print(f"Missing real saliency map for {image_number} in {directory}")
-            if not (Path(directory) / "unisal" / f"{image_number}.png").exists():
-                print(f"Missing unisal saliency map for {image_number} in {directory}")
-            if not (Path(directory) / "centerbias_57.npy").exists():
-                print(f"Missing centerbias for {directory}")
 
 def load_centerbias(directory: str, kernel_size: int = 57) -> ndarray:
     """
