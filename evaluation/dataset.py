@@ -1,5 +1,6 @@
 import zipfile
 from pathlib import Path
+from PIL import Image
 from typing import List
 
 directories = [

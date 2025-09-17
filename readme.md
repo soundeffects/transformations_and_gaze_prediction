@@ -1,6 +1,7 @@
 # Effects of Transformations on Gaze Prediction
 
 ## Set Up
+- The dataset has been redistributed on Google Drive: https://drive.google.com/file/d/1JFCYDkm0x1ssk8P7Cii6tA_xQ2i-udhY/view?usp=sharing.
 - To run the script in `deepgaze_predict`, you need to add the DeepGaze directory as a dependency using pip -e
 
 ## Additional Related Work
