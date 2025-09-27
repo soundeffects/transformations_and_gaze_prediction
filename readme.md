@@ -41,42 +41,29 @@ Sources:
 - UNISAL
 - MIT Saliency Benchmark (for CAT2000)
 
-We estimate the centerbias priors for each of the transformation datasets by simply summing all fixation maps and applying a gaussian blur with a kernel size equal to one degree of visual angle when the data was measured (equal to 57 pixels according to the source of the data). We confirm that saliency maps provided by the original authors of the transformation paper do indeed use a kernel size of 57 pixels.
+We estimate the centerbias priors for each of the transformation datasets by simply summing all fixation maps and applying a gaussian blur with a kernel size equal to one degree of visual angle when the data was measured (equal to 57 pixels according to the source of the data). We confirm that saliency maps provided by the original authors of the transformation paper do indeed use a kernel size of 57 pixels. When we downscale images to the size of the MIT1003 dataset, this roughly corresponds to their 35 pixel kernel size as well.
 We want to double check that saliency maps are regularized for KL/IG. After that, there is a common optimization scheme for NSS/IG and CC/KL that we will use respectively.
+We want to resize images we input to the models to be of similar size to what they were originally trained on. The UNISAL paper used image sizes of 224 x 384 for their 16:9 dataset (DHF1K) and 288 x 384 for their 4:3 dataset (SALICON). We will also test 216 x 384, since that is an actual 16:9 ratio (as is seen in our dataset). For DeepGaze, we follow their advice on the Github repository to downscale our 1920 x 1080 dataset images to be 1024 on the longer side, meaning 1024 x 576 for our dataset. We will also try both on the full 1920 x 1080 resolution.
 
 Unfortunately, I was not able to replicate the performance expected from the DeepGazeIIE model. It performed worse than the centerbias, even for images without transformations. I will have to email the original paper authors to find out what might be going on.
 
-- [2 hours] Get unisal probabalistic maps
-- Try downscaling the images for DeepGaze
+We find that with UNISAL, we get a clear drop in performance with transformed image predictions compared to reference image predictions, which confirms our hypothesis.
 
-### Step 3: Bin results for independent/dependent variables for every transformation
-    [2 hours planning]
-    [5 hours]
+- [2 hours] Express the information gain in number of people whose gaze is predicted correctly
 
 ### Step 4: ANCOVA Statistical Test on all independent/dependent variables (including transformation types)
-    variables:
+    We want to see if any correlations exist between data we have on hand when testing a new transformation (i.e. the fixations/centerbias for an untransformed reference, predictions for reference and transform, and image difference metrics) and the performance of the model for the transformed image (whicih we would not have on hand when testing a new transformation), namely the metrics between the prediction and fixation or centerbias and fixation for the transformed set.
+
+    Independent variables:
     - transformation type
-    - reference real-to-prediction NSS
-    - reference real-to-prediction IG
-    - transformed real-to-prediction NSS
-    - transformed real-to-prediction IG
-    - prediction-to-prediction CC
-    - prediction-to-prediction KL
-    - real-to-real CC
-    - real-to-real KL
-    - reference-to-transformed real-to-prediction NSS
-    - reference-to-transformed real-to-prediction IG
-    - transformed-to-reference real-to-prediction NSS
-    - transformed-to-reference real-to-prediction IG
-    - model type
-    - reference-to-reference centerbias-to-prediction CC
-    - reference-to-reference centerbias-to-prediction KL
-    - reference-to-transformed centerbias-to-prediction CC
-    - reference-to-transformed centerbias-to-prediction KL
-    - transformed-to-reference centerbias-to-prediction CC
-    - transformed-to-reference centerbias-to-prediction KL
-    - transformed-to-transformed centerbias-to-prediction CC
-    - transformed-to-transformed centerbias-to-prediction KL
+    - image difference metrics between reference and transformed
+    - metrics between the reference prediction and the transformed prediction
+    - metrics between the reference prediction and reference real fixations
+    - metrics between the reference centerbias and reference real fixations
+    Dependent Variables:
+    - metrics between the transformed prediction and transformed real fixations
+    - metrics between the transformed centerbias and transformed real fixations
+    
     [2 hours planning]
     [6 hours]
 

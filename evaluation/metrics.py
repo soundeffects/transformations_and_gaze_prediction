@@ -9,7 +9,7 @@ def regularize(saliency_map: ndarray) -> ndarray:
     because of logarithmic function behavior approaching negative
     infinity for small probability values.
     """
-    regularized = saliency_map - min(0.0, saliency_map.min()) + 1e-8
+    regularized = saliency_map - min(0.0, saliency_map.min()) + 1e-9
     return regularized / regularized.sum()
 
 def fixation_map_to_points(fixation_map: ndarray) -> list[tuple[int, int]]:

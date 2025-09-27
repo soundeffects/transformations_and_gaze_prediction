@@ -2,7 +2,8 @@ from centerbias import centerbiases_for_transformations
 from metrics import NSS, IG
 from numpy import mean, std, median
 from pathlib import Path
-from utilities import directories, load_centerbias, load_saliency_map, load_fixations, Table, get_transformation_name, load_real_saliency_map
+from utilities import load_centerbias, load_saliency_map, load_fixations, Table, get_transformation_name, load_real_saliency_map
+from dataset import directories
 
 def centerbias_comparison_benchmark(new_kernel_size: int, old_kernel_size: int) -> Table:
     """
@@ -46,7 +47,7 @@ def centerbias_range_benchmark(maximum_kernel_size: int, csv_directory: str = 'c
         if performance_aggregate > 0:
             best_kernel_size = kernel_size
 
-def fixation_point_benchmarks(models: list[str], include_centerbias: bool = True, include_real: bool = True, centerbias_size: int = 57) -> Table:
+def fixation_point_benchmarks(models: list[str], include_centerbias: bool = True, include_real: bool = True, centerbias_size: int = 57, logging: bool = False) -> Table:
     """
     Run NSS and IG benchmarks for a set of provided model saliency maps, identified
     by the name of the directory in which the saliency maps are stored. The IG metric
@@ -68,7 +69,7 @@ def fixation_point_benchmarks(models: list[str], include_centerbias: bool = True
                 elif model == 'real':
                     saliency_map = load_real_saliency_map(directory, image_number)
                 else:
-                    saliency_map = load_saliency_map(directory, model, image_number)
+                    saliency_map = load_saliency_map(directory, model, image_number, (1920, 1080))
                 data['nss'].append(NSS(saliency_map, fixations))
                 data['ig'].append(IG(saliency_map, centerbias, fixations))
             output.add_row({
@@ -80,4 +81,12 @@ def fixation_point_benchmarks(models: list[str], include_centerbias: bool = True
                 'median_ig': median(data['ig']),
                 'std_nss': std(data['nss']),
                 'std_ig': std(data['ig'])})
+            if logging:
+                print(f"Finished {model} for {get_transformation_name(directory)}")
     return output
+
+def all_fixation_point_benchmarks(logging: bool = False) -> Table:
+    """
+    Run all fixation point benchmarks.
+    """
+    return fixation_point_benchmarks(['deepgaze_1024_576', 'deepgaze_1920_1080', 'unisal_384_224', 'unisal_384_288', 'unisal_384_216', 'unisal_1920_1080'], logging=logging)

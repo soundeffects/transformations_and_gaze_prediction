@@ -48,23 +48,3 @@ def to_png(paths: list[Path], delete_original: bool = False) -> None:
             img.save(path.with_suffix('.png'), 'PNG')
         if delete_original:
             path.unlink()
-
-def report_missing() -> None:
-    """
-    Scan the dataset for any missing image files, saliency maps, or
-    fixation maps.
-    """
-    for directory in directories:
-        for image_number in range(1, 101):
-            if not (Path(directory) / "deepgaze" / f"{image_number}.npy").exists():
-                print(f"Missing deepgaze saliency map for {image_number} in {directory}")
-            if not (Path(directory) / "fixations" / f"{image_number}.png").exists():
-                print(f"Missing fixation map for {image_number} in {directory}")
-            if not (Path(directory) / "images" / f"{image_number}.png").exists():
-                print(f"Missing image {image_number} in {directory}")
-            if not (Path(directory) / "real" / f"{image_number}.png").exists():
-                print(f"Missing real saliency map for {image_number} in {directory}")
-            if not (Path(directory) / "unisal" / f"{image_number}.png").exists():
-                print(f"Missing unisal saliency map for {image_number} in {directory}")
-            if not (Path(directory) / "centerbias_57.npy").exists():
-                print(f"Missing centerbias for {directory}")

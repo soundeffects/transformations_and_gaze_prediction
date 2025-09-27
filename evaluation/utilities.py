@@ -3,8 +3,7 @@ from metrics import fixation_map_to_points, regularize
 from numpy import array, exp, load, ndarray, float32
 from PIL import Image
 from pathlib import Path
-
-
+from scipy.ndimage import zoom
 
 def load_centerbias(directory: str, kernel_size: int = 57) -> ndarray:
     """
@@ -12,11 +11,17 @@ def load_centerbias(directory: str, kernel_size: int = 57) -> ndarray:
     """
     return regularize(load(f"{directory}/centerbias_{kernel_size}.npy"))
 
-def load_saliency_map(directory: str, model: str, image_number: int) -> ndarray:
+def load_saliency_map(directory: str, model: str, image_number: int, resolution: (int, int)) -> ndarray:
     """
-    Load a saliency map from the dataset.
+    Load a saliency map from the dataset. Resize the image to the given resolution, specified in the
+    order of (width, height).
     """
-    return regularize(exp(load(f'{directory}/{model}/{image_number}.npy')))
+    numpy_resolution = (resolution[1], resolution[0])
+    saliency_map = exp(load(f'{directory}/{model}/{image_number}.npy'))
+    if saliency_map.shape != resolution:
+        shape_scaling = (numpy_resolution[0] / saliency_map.shape[0], numpy_resolution[1] / saliency_map.shape[1])
+        saliency_map = zoom(saliency_map, shape_scaling)
+    return regularize(saliency_map)
 
 def load_real_saliency_map(directory: str, image_number: int) -> ndarray:
     """

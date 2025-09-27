@@ -2,7 +2,8 @@ from PIL import Image
 from pathlib import Path
 from numpy import float32, uint8, save, ndarray
 from scipy.ndimage import gaussian_filter
-from utilities import directories, load_fixation_map
+from utilities import load_fixation_map
+from dataset import directories
 
 
 def estimate_centerbias(directory_path: str, sigma: float = 1.0) -> ndarray:

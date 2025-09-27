@@ -5,11 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "cudatoolkit=9.2",
-    "pytorch=1.0",
-    "torchvision",
-    "opencv=3.4",
-    "scipy=1.16.0",
-    "tensorboardX=1.6",
-    "unisal @ git+https://github.com/rdroste/unisal.git",
+    "numpy>=2.3.3",
+    "opencv-python>=4.11.0.86",
+    "pillow>=11.3.0",
+    "scipy>=1.16.2",
+    "tensorboardx>=2.6.4",
+    "torch>=2.8.0",
+    "torchvision>=0.23.0",
 ]
