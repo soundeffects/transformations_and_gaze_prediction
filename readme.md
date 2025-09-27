@@ -49,20 +49,22 @@ Unfortunately, I was not able to replicate the performance expected from the Dee
 
 We find that with UNISAL, we get a clear drop in performance with transformed image predictions compared to reference image predictions, which confirms our hypothesis.
 
+- [1 hour] Select a resolution for UNISAL that performs the best
 - [2 hours] Express the information gain in number of people whose gaze is predicted correctly
 
 ### Step 4: ANCOVA Statistical Test on all independent/dependent variables (including transformation types)
     We want to see if any correlations exist between data we have on hand when testing a new transformation (i.e. the fixations/centerbias for an untransformed reference, predictions for reference and transform, and image difference metrics) and the performance of the model for the transformed image (whicih we would not have on hand when testing a new transformation), namely the metrics between the prediction and fixation or centerbias and fixation for the transformed set.
+    We want to perform the minimum amount of statistical tests with the fewest metrics we think are most relevant, so that the influence of noise in the dataset does not produce a false positive.
 
     Independent variables:
     - transformation type
-    - image difference metrics between reference and transformed
-    - metrics between the reference prediction and the transformed prediction
-    - metrics between the reference prediction and reference real fixations
-    - metrics between the reference centerbias and reference real fixations
+    - image difference metrics between reference and transformed (KL/CC/squared error?)
+    - metrics between the reference prediction and the transformed prediction (CC/KL)
+    - metrics between the reference prediction and reference real fixations (NSS/IG)
+    - metrics between the reference centerbias and reference real fixations (NSS)
     Dependent Variables:
-    - metrics between the transformed prediction and transformed real fixations
-    - metrics between the transformed centerbias and transformed real fixations
+    - metrics between the transformed prediction and transformed real fixations (NSS/IG)
+    - metrics between the transformed centerbias and transformed real fixations (NSS)
     
     [2 hours planning]
     [6 hours]
