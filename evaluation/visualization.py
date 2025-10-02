@@ -1,209 +1,80 @@
-import csv
-import matplotlib.pyplot as plt
-from metrics import regularize
-import numpy as np
-from utilities import directories, load_fixation_map, load_real_saliency_map, gaussian_filter, normalize_to_range
+from csv import reader
+from matplotlib import pyplot
+from numpy import polyfit, corrcoef
+from scipy.stats import zscore
 
-def load_and_process_data(csv_path):
-    """Load and process the CSV data to extract metrics for comparison."""
-    # Read CSV data
-    data = []
-    with open(csv_path, 'r', newline='') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            data.append(row)
-    
-    # Filter for summary statistics (mean, median, std)
-    summary_data = [row for row in data if row['image_number'] in ['mean', 'median', 'std']]
-    
-    # Create separate lists for each model
-    model_35 = [row for row in summary_data if row['model'] == 'centerbias_35']
-    model_57 = [row for row in summary_data if row['model'] == 'centerbias_57']
-    
-    return model_35, model_57
+def visualize_correlations(csv_file: str, z_score_threshold: float = 2.5, kl_z_score_threshold: float = 0.1) -> None:
+    """
+    Visualize the correlations between the reference and transformed saliency maps.
+    """
+    transformations = {}
+    table_row_labels = []
+    with open(csv_file, 'r') as file:
+        rows = reader(file)
+        next(rows)
+        for row in rows:
+            transformation = row[0]
+            if transformation not in transformations:
+                transformations[transformation] = { 'ssim': [], 'cc': [], 'kl': [], 'kl_reverse': [], 'reference_nss': [], 'reference_ig': [], 'transformed_nss': [], 'transformed_ig': [] }
+                table_row_labels.append(transformation)
+            for index, statistic in enumerate(transformations[transformation].keys()):
+                transformations[transformation][statistic].append(float(row[index + 2]))
+    table_rows = []
+    table_headers = []
+    for transformation in transformations:
+        zscores = {}
+        for statistic in transformations[transformation]:
+            zscores[statistic] = zscore(transformations[transformation][statistic])
+        rows = 3
+        columns = 4
+        figure, axes = pyplot.subplots(rows, columns)
+        figure.suptitle(transformation)
+        table_row = []
+        def plot_data(stat_1: str, stat_2: str) -> tuple[list[float], list[float], str, str]:
+            x = []
+            y = []
+            for index in range(len(transformations[transformation][stat_1])):
+                zscore_1 = zscores[stat_1][index]
+                zscore_2 = zscores[stat_2][index]
+                kl_passed = stat_1 == 'kl' and zscore_1 < kl_z_score_threshold
+                other_passed = stat_1 != 'kl' and zscore_1 < z_score_threshold
+                if kl_passed or other_passed and zscore_2 < z_score_threshold:
+                    x.append(transformations[transformation][stat_1][index])
+                    y.append(transformations[transformation][stat_2][index])
+            return x, y, stat_1, stat_2
+        plots = [
+            plot_data('ssim', 'transformed_nss'),
+            plot_data('cc', 'transformed_nss'),
+            plot_data('kl', 'transformed_nss'),
+            plot_data('kl_reverse', 'transformed_nss'),
+            plot_data('reference_nss', 'transformed_nss'),
+            plot_data('reference_ig', 'transformed_nss'),
+            plot_data('ssim', 'transformed_ig'),
+            plot_data('cc', 'transformed_ig'),
+            plot_data('kl', 'transformed_ig'),
+            plot_data('kl_reverse', 'transformed_ig'),
+            plot_data('reference_nss', 'transformed_ig'),
+            plot_data('reference_ig', 'transformed_ig'),
+        ]
+        for index, (x, y, x_label, y_label) in enumerate(plots):
+            row = index // columns
+            column = index % columns
+            table_header = f'{x_label},{y_label}'
+            table_headers.append(table_header)
+            correlation = corrcoef(x, y)[0, 1]
+            slope, intercept = polyfit(x, y, 1)
+            table_row.append(f'{correlation:.2f}')
+            axes[row, column].scatter(x, y)
+            axes[row, column].plot([min(x), max(x)], [slope * min(x) + intercept, slope * max(x) + intercept])
+            axes[row, column].set_xlabel(f'{x_label}\n(CC: {correlation:.2f})')
+            axes[row, column].set_ylabel(y_label)
+            axes[row, column].set_title(table_header)
+            axes[row, column].grid()
+        table_rows.append(table_row)
+        pyplot.subplots_adjust(hspace=0.5, wspace=0.5)
+        pyplot.show()
+    print(f'transformation, {",".join(table_headers)}')
+    for index, table_row in enumerate(table_rows):
+        print(f'{table_row_labels[index]}, {",".join(table_row)}')
 
-def create_comparison_charts(model_35, model_57, save_path=None):
-    """Create bar charts comparing the two models across different metrics."""
-    
-    # Get unique transformations and metrics
-    transformations = list(set(row['transformation'] for row in model_35))
-    metrics = ['nss', 'ig_35', 'ig_57']
-    
-    # Set up the plotting
-    fig, axes = plt.subplots(1, 3, figsize=(18, 8))
-    fig.suptitle('Model Comparison: centerbias_35 vs centerbias_57', fontsize=16, fontweight='bold')
-    
-    colors = ['#2E86AB', '#A23B72']  # Blue for 35, Red for 57
-    
-    for i, metric in enumerate(metrics):
-        ax = axes[i]
-        
-        # Prepare data for this metric
-        x = np.arange(len(transformations))
-        width = 0.35
-        
-        # Get values for both models
-        values_35 = []
-        values_57 = []
-        
-        for trans in transformations:
-            val_35 = next((float(row[metric]) for row in model_35 if row['transformation'] == trans), 0.0)
-            val_57 = next((float(row[metric]) for row in model_57 if row['transformation'] == trans), 0.0)
-            values_35.append(val_35)
-            values_57.append(val_57)
-        
-        # Create bars
-        bars1 = ax.bar(x - width/2, values_35, width, label='centerbias_35', color=colors[0], alpha=0.8)
-        bars2 = ax.bar(x + width/2, values_57, width, label='centerbias_57', color=colors[1], alpha=0.8)
-        
-        # Customize the plot
-        ax.set_xlabel('Transformation Type')
-        ax.set_ylabel(metric.upper())
-        ax.set_title(f'{metric.upper()} Comparison')
-        ax.set_xticks(x)
-        ax.set_xticklabels(transformations, rotation=45, ha='right')
-        ax.legend()
-        ax.grid(True, alpha=0.3)
-        
-        # Add value labels on bars
-        for bar in bars1:
-            height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height,
-                   f'{height:.3f}', ha='center', va='bottom', fontsize=8)
-        
-        for bar in bars2:
-            height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height,
-                   f'{height:.3f}', ha='center', va='bottom', fontsize=8)
-    
-    plt.tight_layout()
-    
-    if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Chart saved to {save_path}")
-    
-    plt.show()
-
-def create_summary_statistics_chart(model_35, model_57, save_path=None):
-    """Create a chart showing summary statistics (mean, median, std) for NSS metric."""
-    
-    # Filter for NSS metric only
-    nss_35 = next((float(row['nss']) for row in model_35 if row['image_number'] == 'mean'), 0.0)
-    nss_57 = next((float(row['nss']) for row in model_57 if row['image_number'] == 'mean'), 0.0)
-    
-    # Get all transformations for NSS mean
-    transformations = list(set(row['transformation'] for row in model_35))
-    
-    # Prepare data
-    x = np.arange(len(transformations))
-    width = 0.35
-    
-    values_35 = []
-    values_57 = []
-    
-    for trans in transformations:
-        val_35 = next((float(row['nss']) for row in model_35 if row['transformation'] == trans), 0.0)
-        val_57 = next((float(row['nss']) for row in model_57 if row['transformation'] == trans), 0.0)
-        values_35.append(val_35)
-        values_57.append(val_57)
-    
-    # Create the plot
-    fig, ax = plt.subplots(figsize=(15, 8))
-    
-    bars1 = ax.bar(x - width/2, values_35, width, label='centerbias_35', color='#2E86AB', alpha=0.8)
-    bars2 = ax.bar(x + width/2, values_57, width, label='centerbias_57', color='#A23B72', alpha=0.8)
-    
-    ax.set_xlabel('Transformation Type')
-    ax.set_ylabel('NSS Score (Mean)')
-    ax.set_title('NSS Score Comparison: centerbias_35 vs centerbias_57 (Mean Values)', fontsize=14, fontweight='bold')
-    ax.set_xticks(x)
-    ax.set_xticklabels(transformations, rotation=45, ha='right')
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-    
-    # Add value labels on bars
-    for bar in bars1:
-        height = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2., height,
-               f'{height:.3f}', ha='center', va='bottom', fontsize=9)
-    
-    for bar in bars2:
-        height = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2., height,
-               f'{height:.3f}', ha='center', va='bottom', fontsize=9)
-    
-    plt.tight_layout()
-    
-    if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Summary chart saved to {save_path}")
-    
-    plt.show()
-
-def centerbias_performance_comparison(data_path: str = 'centerbias_fixation_metrics.csv'):
-    """Main function to run the visualization."""
-    data = []
-    with open(data_path, 'r', newline='') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            if row['image_number'] == 'mean':
-                data.append((row['model'], row['transformation'], row['nss']))
-            elif row['image_number'] == 'median':
-                medians.append(row)
-            elif row['image_number'] == 'std':
-                stds.append(row)
-    
-    # Filter for summary statistics (mean, median, std)
-    summary_data = [row for row in data if row['image_number'] in ['mean', 'median', 'std']]
-    
-    # Create separate lists for each model
-    model_35 = [row for row in summary_data if row['model'] == 'centerbias_35']
-    model_57 = [row for row in summary_data if row['model'] == 'centerbias_57']
-    try:
-        # Load and process data
-        print("Loading data...")
-        model_35, model_57 = load_and_process_data(csv_path)
-        
-        print(f"Found {len(model_35)} summary records for centerbias_35")
-        print(f"Found {len(model_57)} summary records for centerbias_57")
-        
-        # Create comparison charts
-        print("Creating comparison charts...")
-        create_comparison_charts(model_35, model_57, 'model_comparison_charts.png')
-        
-        # Create summary statistics chart
-        print("Creating summary statistics chart...")
-        create_summary_statistics_chart(model_35, model_57, 'nss_summary_chart.png')
-        
-        # Print summary statistics
-        print("\nSummary Statistics:")
-        print("=" * 50)
-        
-        for metric in ['nss', 'ig_35', 'ig_57']:
-            mean_35 = next((float(row[metric]) for row in model_35 if row['image_number'] == 'mean'), 0.0)
-            mean_57 = next((float(row[metric]) for row in model_57 if row['image_number'] == 'mean'), 0.0)
-            print(f"\n{metric.upper()} Metric:")
-            print(f"centerbias_35 mean: {mean_35:.4f}")
-            print(f"centerbias_57 mean: {mean_57:.4f}")
-            print(f"Difference (35-57): {mean_35 - mean_57:.4f}")
-        
-    except FileNotFoundError:
-        print(f"Error: Could not find the CSV file '{csv_path}'")
-        print("Please make sure the file is in the current directory.")
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
-
-def check_real_saliency_maps(sigma: int = 57) -> bool:
-    for directory in directories:
-        for image_number in range(1, 101):
-            fixation_smoothed_map = regularize(gaussian_filter(load_fixation_map(directory, image_number), sigma=sigma))
-            real_map = normalize_to_range(load_real_saliency_map(directory, image_number), fixation_smoothed_map.min(), fixation_smoothed_map.max())
-            difference = real_map - fixation_smoothed_map
-            _, axes = plt.subplots(1, 3, figsize=(10, 5))
-            axes[0].imshow(real_map, cmap='viridis')
-            axes[0].set_title('Real Saliency Map')
-            axes[1].imshow(fixation_smoothed_map, cmap='viridis')
-            axes[1].set_title('Fixation Smoothed Map')
-            axes[2].imshow(difference, cmap='viridis', vmin=0.0, vmax=fixation_smoothed_map.max() - fixation_smoothed_map.min())
-            axes[2].set_title('Difference')
-            plt.show()
+visualize_correlations("correlation_metrics.csv", z_score_threshold=3.0, kl_z_score_threshold=3.0)

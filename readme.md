@@ -47,27 +47,34 @@ We want to resize images we input to the models to be of similar size to what th
 
 Unfortunately, I was not able to replicate the performance expected from the DeepGazeIIE model. It performed worse than the centerbias, even for images without transformations. I will have to email the original paper authors to find out what might be going on.
 
-We find that with UNISAL, we get a clear drop in performance with transformed image predictions compared to reference image predictions, which confirms our hypothesis.
-
-- [1 hour] Select a resolution for UNISAL that performs the best
+We find that with UNISAL, we get a clear drop in performance with transformed image predictions compared to reference image predictions, which confirms our hypothesis. We select the 384x224 variant of the UNISAL predicts, as we find that those predictions perform better than the other resolutions tested.
 - [2 hours] Express the information gain in number of people whose gaze is predicted correctly
 
 ### Step 4: ANCOVA Statistical Test on all independent/dependent variables (including transformation types)
-    We want to see if any correlations exist between data we have on hand when testing a new transformation (i.e. the fixations/centerbias for an untransformed reference, predictions for reference and transform, and image difference metrics) and the performance of the model for the transformed image (whicih we would not have on hand when testing a new transformation), namely the metrics between the prediction and fixation or centerbias and fixation for the transformed set.
-    We want to perform the minimum amount of statistical tests with the fewest metrics we think are most relevant, so that the influence of noise in the dataset does not produce a false positive.
+- Sources: SSIM metric
 
-    Independent variables:
-    - transformation type
-    - image difference metrics between reference and transformed (KL/CC/squared error?)
-    - metrics between the reference prediction and the transformed prediction (CC/KL)
-    - metrics between the reference prediction and reference real fixations (NSS/IG)
-    - metrics between the reference centerbias and reference real fixations (NSS)
-    Dependent Variables:
-    - metrics between the transformed prediction and transformed real fixations (NSS/IG)
-    - metrics between the transformed centerbias and transformed real fixations (NSS)
-    
-    [2 hours planning]
-    [6 hours]
+We want to see if any correlations exist between data we have on hand when testing a new transformation (i.e. the fixations/centerbias for an untransformed reference, predictions for reference and transform, and image difference metrics) and the performance of the model for the transformed image (whicih we would not have on hand when testing a new transformation), namely the metrics between the prediction and fixation or centerbias and fixation for the transformed set.
+We want to perform the minimum amount of statistical tests with the fewest metrics we think are most relevant, so that the influence of noise in the dataset does not produce a false positive.
+
+Independent variables:
+- transformation type
+- image difference metrics between reference and transformed (SSIM)
+- metrics between the reference prediction and the transformed prediction (CC/KL)
+- metrics between the reference prediction and reference real fixations (NSS/IG)
+Dependent Variables:
+- metrics between the transformed prediction and transformed real fixations (NSS/IG)
+
+(Also consider correlation metrics involving averages and centerbiases)
+
+We will actually perform many tests for covariance: at least one for each transformation. Otherwise, we will be comparing many metrics that were computed for completely different transformations for covariance, which is meaningless and may produce relationships that shouldn't exist when we try to interpret the results of the tests.
+
+We find that there are no strong correlations (filtering for correlation coefficients that are below 0.5) except for NSS-NSS and IG-IG in many transformations, or CC-NSS and KL-NSS in a select few transformations. It is noticed that those transformations which have stronger CC-NSS and KL-NSS correlations have weaker NSS-NSS and IG-IG correlations, but the inverse is not necessarily true. This anti correlation between correlation coefficients is also not necessarily useful, since computing the correlation coefficients requires measuring real gaze distributions.
+
+It is noted that although NSS-NSS and IG-IG correlation coefficients tend to be strong, they simply follow the performance of the model on the transformation: if the model performs worse on a transformation, the correlation cofficients for that transformation are also weaker. This information has limited use, because although it tells us that stronger predictions on a reference image also lead to stronger predictions on a transformed image, it does not tell us how much error to expect due to the transformation.
+
+- Fit a quadratic curve to NSS-NSS/IG-IG correlations to show how the reference performance runs away from the transformation performance?
+- P-value for strong correlations?
+- Correlation between average performance and NSS-NSS/IG-IG correlation coefficients
 
 ### Step 5: Possibly linking back to earlier experiments
     [2 hours planning]

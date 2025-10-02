@@ -1,8 +1,6 @@
-from csv import writer
-from metrics import fixation_map_to_points, regularize
-from numpy import array, exp, load, ndarray, float32
+from metrics import regularize
+from numpy import array, exp, load, ndarray, float32, ndindex
 from PIL import Image
-from pathlib import Path
 from scipy.ndimage import zoom
 
 def load_centerbias(directory: str, kernel_size: int = 57) -> ndarray:
@@ -39,44 +37,24 @@ def load_fixation_map(directory: str, image_number: int) -> ndarray:
     image = image.astype(float32) / 255.0
     return image
 
+def fixation_map_to_points(fixation_map: ndarray) -> list[tuple[int, int]]:
+    """
+    Convert a fixation map (a black image with white pixels marking
+    fixation locations) to a list of points.
+    """
+    return [(x, y) for x, y in ndindex(fixation_map.shape) if fixation_map[x, y] > 0]
+
 def load_fixations(directory: str, image_number: int) -> list[tuple[int, int]]:
     """
     Load a set of fixation points from the dataset.
     """
     return fixation_map_to_points(load_fixation_map(directory, image_number))
 
-class Table:
+def load_image(directory: str, image_number: int) -> ndarray:
     """
-    A table of data, useful for visualizing using matplotlib or saving to a CSV file.
+    Load an image from the dataset.
     """
-    def __init__(self, headers: list[str]):
-        """
-        Create a table with the given headers.
-        """
-        self.data = { header: [] for header in headers }
-
-    def add_row(self, row: dict[str, float]) -> None:
-        """
-        Add a row to the table.
-        """
-        for header in self.data.keys():
-            self.data[header].append(row[header])
-
-    def to_csv(self, output_path: str = "benchmark.csv") -> None:
-        """
-        Save the table to a CSV file.
-        """
-        with open(output_path, 'w', newline='') as csvfile:
-            output = writer(csvfile)
-            output.writerow(self.data.keys())
-            for i in range(len(self.data[next(iter(self.data.keys()))])):
-                output.writerow([self.data[header][i] for header in self.data.keys()])
-
-    def get_column(self, column: str) -> list[float]:
-        """
-        Get a column from the table.
-        """
-        return self.data[column]
+    return array(Image.open(f'{directory}/images/{image_number}.png'))
 
 def get_transformation_name(directory: str) -> str:
     """

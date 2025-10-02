@@ -1,7 +1,8 @@
-import zipfile
+from csv import writer, DictReader
 from pathlib import Path
 from PIL import Image
 from typing import List
+from zipfile import ZipFile, ZIP_DEFLATED
 
 directories = [
     "../data/Boundary",
@@ -26,7 +27,7 @@ directories = [
 ]
 
 def zip_paths(base_path: Path, paths: List[Path], output_path: str) -> None:
-    with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as output_file:
+    with ZipFile(output_path, 'w', ZIP_DEFLATED, compresslevel=6) as output_file:
         for path in paths:
             for file in path.rglob('*'):
                 if file.is_file():
@@ -48,3 +49,46 @@ def to_png(paths: list[Path], delete_original: bool = False) -> None:
             img.save(path.with_suffix('.png'), 'PNG')
         if delete_original:
             path.unlink()
+        
+class Table:
+    """
+    A table of data, useful for visualizing using matplotlib or saving to a CSV file.
+    """
+    def __init__(self, headers: list[str]):
+        """
+        Create a table with the given headers.
+        """
+        self.data = { header: [] for header in headers }
+
+    def add_row(self, row: dict[str, float]) -> None:
+        """
+        Add a row to the table.
+        """
+        for header in self.data.keys():
+            self.data[header].append(row[header])
+
+    def to_csv(self, output_path: str = "benchmark.csv") -> None:
+        """
+        Save the table to a CSV file.
+        """
+        with open(output_path, 'w', newline='') as csvfile:
+            output = writer(csvfile)
+            output.writerow(self.data.keys())
+            for i in range(len(self.data[next(iter(self.data.keys()))])):
+                output.writerow([self.data[header][i] for header in self.data.keys()])
+
+    def load_csv(self, input_path: str) -> None:
+        """
+        Load a table from a CSV file.
+        """
+        with open(input_path, 'r', newline='') as csvfile:
+            reader = DictReader(csvfile)
+            self.data = { header: [] for header in reader.fieldnames }
+            for row in reader:
+                self.add_row(row)
+
+    def get_column(self, column: str) -> list[float]:
+        """
+        Get a column from the table.
+        """
+        return self.data[column]
