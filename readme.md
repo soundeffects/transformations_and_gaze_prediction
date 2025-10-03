@@ -49,8 +49,9 @@ Unfortunately, I was not able to replicate the performance expected from the Dee
 
 We find that with UNISAL, we get a clear drop in performance with transformed image predictions compared to reference image predictions, which confirms our hypothesis. We select the 384x224 variant of the UNISAL predicts, as we find that those predictions perform better than the other resolutions tested.
 - [2 hours] Express the information gain in number of people whose gaze is predicted correctly
+- Graph how the performance degrades with any progressive intensity transformations
 
-### Step 4: ANCOVA Statistical Test on all independent/dependent variables (including transformation types)
+### Step 4: Statistical Test on all independent/dependent variables (including transformation types)
 - Sources: SSIM metric
 
 We want to see if any correlations exist between data we have on hand when testing a new transformation (i.e. the fixations/centerbias for an untransformed reference, predictions for reference and transform, and image difference metrics) and the performance of the model for the transformed image (whicih we would not have on hand when testing a new transformation), namely the metrics between the prediction and fixation or centerbias and fixation for the transformed set.
@@ -72,14 +73,14 @@ We find that there are no strong correlations (filtering for correlation coeffic
 
 It is noted that although NSS-NSS and IG-IG correlation coefficients tend to be strong, they simply follow the performance of the model on the transformation: if the model performs worse on a transformation, the correlation cofficients for that transformation are also weaker. This information has limited use, because although it tells us that stronger predictions on a reference image also lead to stronger predictions on a transformed image, it does not tell us how much error to expect due to the transformation.
 
-- Fit a quadratic curve to NSS-NSS/IG-IG correlations to show how the reference performance runs away from the transformation performance?
-- P-value for strong correlations?
-- Correlation between average performance and NSS-NSS/IG-IG correlation coefficients
+We argue that we do not need P-values because it is difficult to determine how
+likely it is that an image is or is not representative of any class of images.
+We will instead argue on the basis of sample size (100 randomly selected images
+from the CAT2000 Dataset).
 
-### Step 5: Possibly linking back to earlier experiments
-    [2 hours planning]
-    [2 hours]
-- Possibly include a measurement of performance on the "stylized" sections of the CAT2000 training dataset
+- Fit a quadratic curve to NSS-NSS/IG-IG correlations to show how the reference performance runs away from the transformation performance?
+- Correlation between average performance and NSS-NSS/IG-IG correlation coefficients
+- Separate and analyze any transformations where CC-NSS/KL-NSS correlation is high, to see if there is a class of transformation that can be reasoned about
 
 ### Step 6: Write paper
 - [1 hour] Intro stating the problem domain these tools operate in and practical use cases of the tools (including our desired use case for games)
