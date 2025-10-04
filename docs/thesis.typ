@@ -189,6 +189,8 @@ When collecting gaze distribution data from human subjects, we receive a collect
 
 When testing greater fixation point sample sizes, we see that on the limit of infinite sample size, the saliency map would converge to a smooth probability distribution rather than a discrete point cloud. Thus, if we wish to obtain a better estimate of the real gaze distribution, we should blur the saliency map with a Gaussian kernel to obtain a smoother probability distribution. This step is referred to as "regularization". (It is convention to set the size of the Gaussian kernel to a pixel value equivalent to one degree of visual angle in length from the human subject's perspective.)
 
+// figure of a smoothed saliency map
+
 This regularized saliency map is our best proxy for the real gaze distribution. We will refer to it as the "real map" for brevity.
 
 Gaze prediction models will compute a saliency map for an image using only the image's contents. It will not have access to any fixation points gathered from human subjects. Using performance metrics whose computation we will describe shortly, one can use those metrics computed on the real map as a reference point for the upper limit of performance for those metrics computed on the gaze prediction model's output.
@@ -196,6 +198,8 @@ Gaze prediction models will compute a saliency map for an image using only the i
 We wish also to find a lower reference point for performance. For a prediction to be a lower reference point, it should predict any features or biases that are common in the dataset or class of images we are studying, but should not predict any features based on the image's contents. This will allow us to see what information the gaze prediction model can inference from an image itself, rather than any assumptions the model might make based on previous experience with the dataset or class of images.
 
 An adequate lower reference point can be computed by collecting all fixation points for the entire dataset of interest, and regularizing similar to the real map. This is usually referred to as the "center bias", due to the prevalent tendency of most human subjects (and therefore datasets of human gaze behavior) to fixate towards the center of an image. The centerbias will account for most dataset-wide biases because of the averaging across all images in the dataset, and it will weight any fixations which were specific to any given image to a lesser degree due to the averaging as well.
+
+// figure of centerbias
 
 (Note that one can compute a more "competitive" lower reference point by using a cross-validation approach to improve upon the centerbias, as shown by Matthias Kümmerer, Thomas S. A. Wallis, and Matthias Bethge @information-gain. We find that the improvement this step provides is marginal, and so we omit the process. For more details, see the "Method" section.)
 
@@ -205,37 +209,64 @@ Using these metrics, if a saliency map produced by a gaze prediction model is cl
 
 The most widely adopted benchmark for gaze prediction model performance is the MIT/Tuebingen Saliency Benchmark @mit-tuebingen, which lists many of the metrics described by Bylinskii et al. @saliency-metrics to compare the performance of submitted models. We intended to select the current top contender on the benchmark, DeepGaze IIE @deepgazeiie, and a lower accuracy but faster-running and smaller memory-footprint model, UNISAL @unisal, as our state-of-the-art models for our study. Both of these models perform better than the centerbias on the MIT/Tuebingen Saliency Benchmark for the CAT2000 dataset (which the Che et al. @gaze-transformations dataset is derived from), while the models Che et al. @gaze-transformations studied performed worse.
 
-Unfortunately, we were unable to replicate the performance expected from the DeepGaze IIE model, and so we continued our study only using the UNISAL model. More details are described in the "Experiment" section.
+Unfortunately, we were unable to replicate the performance expected from the DeepGaze IIE model, and so we continued our study only using the UNISAL model. More details are described in the "Results" section.
 
 = METHOD
-We wish to produce a method which shows whether a predicted gaze density adheres to the real gaze density when considering an image that is transformed with one of three classes of transformation.
+We use the dataset provided by Che et al. @gaze-transformations, which includes 100 randomly selected images from the CAT2000 dataset @cat2000, with 18 different transformations applied to each image. This produces a total of 1900 images, including the reference untransformed images. See figure 2 for examples of all 18 transformations. Gaze fixation points are recorded for each image.
 
-First, let us define some terms. We will refer to the gaze density of an image before a transformation as the "prior density", and the gaze density of the image after a transformation as the "subsequent density". We will refer to KL-divergence as "divergence" for brevity. We define "adherence" to be a condition for a transformation, such that the divergence of a prior density to its appropriate real gaze density is greater than or equal (to within 5% of the divergence value) to the corresponding subsequent density to its real gaze density, for 95% of images tested under the transformation.
+// figure of all 18 transformations
 
-We call such a transformation a "composable" transformation. Assuming a transformation has been tested for adherence over a large number and large variety of images, we can be confident that the gaze prediction model understands the transformation and its effects on gaze behavior. Composable transformations may be applied freely to an image without concern for degrading the model's performance.
+We compute the centerbias for the reference (untransformed) set and each transformation set by collecting all fixation points for the images of the transformation and applying a Gaussian blur with a kernel size of 57 pixels, which is one degree of visual angle according to Che et al. As reported in the "Results" section, we find that the centerbias performs closely to the reported performance of the centerbias on the MIT/Tuebingen Saliency Benchmark for the CAT2000 dataset for the reference (untransformed) images. Given this, we decide to omit any cross-validation step as improvements would be marginal.
 
-TODO:
-- Obviously, if divergence is low, then it stands to reason that greater subsequent adherence is likely.
-- If divergence is higher, but information asymmetry is low, then greater subsequent adherence might be the case: we should study.
-- Check divergence, information asymmetry, and a  product of both metrics for binary classification and for error bound/trend
-- Figure out where to set confidence bounds for adherence
+// Centerbias example
 
-We wish to provide evidence that two metrics, computed on the prior density and the subsequent density, are statistically significant heuristics for whether the adherence of the subsequent density is roughly equal or greater than the adherence of the prior density to its corresponding real gaze density.
+We also compute the real map for each image using the same Gaussian blur kernel on the fixation points for each image separately.
 
-We will argue that the condition of greater subsequent adherence implies that the transformation does not degrade the performance of a gaze prediction model. We will refer to this condition as "composability". Transformations that have been proven composable for a gaze prediction model can be applied to images freely, without the need for consideration of the effects on the model's performance.
+// Real map example
 
-The first metric is KL-divergence, which will referred to henceforth simply as "divergence". The second is the difference in information gain between the two distributions. We we will invent the term "information asymmetry" to refer to this difference in information gain.
+We run the DeepGaze IIE @deepgazeiie and UNISAL @unisal models on all reference and transformed images. The dataset images are at 1920x1080 resolution, and we run inference for both models at this resolution, but we also run inference for downscaled images which better match the expected resolution of the models. DeepGaze IIE @deepgazeiie expects an image with a width of 1024, so we downscale the images to 1024x576 for another DeepGaze inference. UNISAL @unisal expects several resolutions for different datasets it was trained on, so we run an inference for the resolutions of 384x224 (which matches the DHF1K dataset [citation needed] resolution), 384x288 (which matches the SALICON dataset [citation needed] resolution), and 384x216 (which preserves the ratio of the 1920x1080 image, but with a width of 384). We run inference for each model at each resolution, and intend to select the best-performing resolution for each model.
 
-We apply the stylization at relative strengths, such that we can study whether a stylization has non-linear effects on the prediction.
+There will be two steps to our study. First, we wish to evaluate the performance of the models on both reference and transformed images. When comparing average performance, we hypothesize that the model's performance will be degraded, but we wish also to get a sense of how much the performance degrades in our analysis, if possible.
 
-So that we can compare the effects of different stylizations, we normalize the KL-divergence and information gain difference by the size of the image and the least-squares difference between the stylization and the original image. The resulting metric tells us the effect size per pixel of the image, per pixel intensity value altered by the stylization. We compute the mean, median, and standard deviation of these normalized metrics across all images for a given stylization.
+Second, we wish to find a correlation between any metrics we can derive from a source gaze distribution dataset and transformations upon that dataset, without having to gather human trials or real gaze distributions, that can be used as a heuristic to estimate the performance of a model's predictions for a type of transformation in general. We will look to the metrics described by Bylinskii et al. @saliency-metrics for both the first and the second step.
 
-We use the divergence and information gain difference resulting from random noise as a control group for the comparison of effects of stylizations. If a stylization produces lower metrics than random noise, the stylization has little effect on the prediction produced by the model, and vice versa for higher metrics.
+We consider the metrics described by Bylinskii et al. @saliency-metrics to compare saliency maps produced by models. These metrics include area-under-the-curve (AUC-Judd, citation needed) metric, the shuffled area-under-the-curve (sAUC, citation needed) metric, the histogram similarity metric (SIM, citation needed), the correlation coefficient metric (CC, citation needed), the Kullback-Leibler divergence metric (KL, citation needed), the information gain metric (IG, citation needed), and the Earth Mover's Distance metric (EMD, citation needed).
 
-If a stylization produces metrics significantly different from random noise, whether lower or higher, and if an explanation for the effect based on human visual behavior can't be produced, it warrants further study and training for the model. The same can be said for metrics which are not significantly different, contrary to expectation from human visual behavior.
+We wish to isolate the most relevant metrics for our study. With relevant metrics, we can evaluate model performance and conduct statistical and correlation analysis. However, by checking too many metrics, we increase the likelihood of false positives when searching for relationships between metrics due to noise. Thus, we select metrics with the most useful qualities and most significance.
 
-TODO: 
-- add problem statement to the end of background
-- add the paper references to MIT benchmark
+The metrics cluster into rank-correlated groups. Bylinskii et al. @saliency-metrics show that the AUC-Judd, sAUC, SIM, CC, NSS, and EMD metrics are highly rank-correlated to each other on the MIT/Tuebingen Saliency Benchmark @mit-tuebingen. Additionally, they find that IG and KL metrics are rank-correlated in a separate group. If we find an external correlation exists for a metric in one of these groups, and we assume that the rank correlation between the metrics of the group is close enough to a linear relationship such that it does not excessively weaken or distance any transitive relationships, then the external correlation must also exist for the other metrics of the group. We will make the above assumption, and so we should select the fewest metrics possible from each group.
 
-#bibliography("paper.bib", title: "REFERENCES")
+We decide against the AUC metric because it is invariant to monotonic transformations, and has saturated benchmarks due to this property. We would like to be sensitive to the relative importance of salient regions, which the AUC metric is not.
+
+We decide against the sAUC metric because it assumes no centerbias is present in the saliency maps that a model produces, and we wish to include centerbias in our study such that we study holistic viewing behavior.
+
+We decide against the SIM metric because it is not symmetrical for false positives and negatives, meaning a false negative will impact the score more than a false positive.
+
+We decide against the EMD metric because it priorities the accuracy of relative saliency of regions, but does not prioritize the accurate placement of those regions. These are opposite priorities to our motivating causes for the study--we want to know where a user is looking as accurately as possible.
+
+Thus, for the first group, we select the NSS and CC metrics. NSS is favored, because it is parameter-free whereas CC requires a decision on the size of a gaussian kernel to blur the saliency map before computation, as Bylinskii et al. @saliency-metrics recommend for fair comparisons between saliency maps that include various frequencies of information. However, NSS compares a saliency map to a set of fixation points, whereas CC compares two saliency maps. Fixation points are not available when comparing between two saliency maps that where produced by two model inferences, for example.
+
+For the second rank-correlated group, we select the IG and KL metrics. IG is favored, because it provides a comparitive measure against a baseline (the centerbias), and because it is parameter-free, but once again requires fixation points. KL requires the same tuning of the gaussian kernel size as CC, and also does not require fixation points.
+
+Thus, we can apply the metrics we have selected to the two steps of our study. For the first step, we will compute average NSS and IG metrics for each transformation set, and compare the average performance of the models on the transformed images to the average performance of the models on the reference images.
+
+For the second step, we will compute the structural similarity index (SSIM, citation needed) between the reference and transformed images, the CC and KL metrics between the saliency maps produced by the model for the reference and transformed image, and the NSS and IG metrics for the reference saliency map the model produced. These metrics are selected because they can be computed using only a reference dataset with gaze distribution records and any arbitrary image transformation, without the need to measure real gaze distributions for the transformed images. We collect these five metrics as our independent variables. Our dependent variables will be the NSS and IG metrics for the transformed saliency map the model produced.
+
+We wish to find a correlation between any pair of independent and dependent variable. There are 10 possible pairs between these variables, and so we will perform 10 separate correlation tests for each transformation set of images. We will simply graph the independent and dependent variable values for each image in the transformation set to spot patterns, find a line of best fit, and compute the linear correlation coefficient for each pair of variables. From there, we will interpret any correlation with a correlation coefficient above 0.5 as significant, and interpret what meaning those significant relationships might have in the context of our study.
+
+We recognize that it would be ideal to compute a measure of how likely it is that a relationship arises due to a non-representative sample of images, such as a p-value. In order to compute a p-value, you must determine how likely it is that a given sample, in this case an image, is representative of the class of images you wish to study. This would be difficult due to the vague nature of image classes and determining whether an image is representative or not. We instead argue that, with our image class defined as "images from the CAT2000 dataset", and the assumption that the CAT2000 dataset is representative of images found in many other useful tasks we might apply gaze prediction models to, our sample size of 100 randomly selected images from the CAT2000 dataset is large enough to provide a reasonable basis for our study.
+
+We make great effort to ensure our study is reproducible. Find the code and the data at the codeberg repository.
+
+= RESULTS
+We find that our centerbias performs closely to the reported performance of the centerbias on the MIT/Tuebingen Saliency Benchmark for the CAT2000 dataset for the reference (untransformed) images. (More accurate measurements here)
+
+We also find that the UNISAL model performs similarly to the expectation set by the MIT/Tuebingen Saliency Benchmark for the CAT2000 dataset for the reference (untransformed) images. (More accurate measurements here)
+
+However, we were unable to replicate the performance expected from the DeepGaze IIE model, despite our best efforts to follow the protocol outlined in the DeepGaze IIE paper. (More accurate measurements of how bad here) We have reached out to the authors of the paper for comment, but have not heard back yet, and so we continue our study only using the UNISAL model.
+
+Though we found that UNISAL performs as expected for reference images, we find that it performs worse for transformed images. We find that the average NSS and IG metrics for the transformed images are significantly lower than the average NSS and IG metrics for the reference images. If using the centerbias as a binary threshold for whether the prediction is "good enough", then the UNISAL model would be good enough for reference images but not for transformed images. (More intuitive numbers here)
+
+
+
+#bibliography("thesis.bib", title: "REFERENCES")

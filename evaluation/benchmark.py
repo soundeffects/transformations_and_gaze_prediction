@@ -1,3 +1,4 @@
+from csv import DictReader
 from centerbias import centerbiases_for_transformations
 from metrics import CC, KL, NSS, IG, SSIM
 from numpy import mean, std, median
@@ -46,8 +47,6 @@ def centerbias_range_benchmark(maximum_kernel_size: int, csv_directory: str = 'c
         performance_aggregate = mean(output.get_column('mean_nss')) + mean(output.get_column('mean_ig'))
         if performance_aggregate > 0:
             best_kernel_size = kernel_size
-
-
 
 def fixation_point_averages(models: list[str], include_centerbias: bool = True, include_real: bool = True, centerbias_size: int = 57, logging: bool = False) -> Table:
     """
@@ -138,3 +137,25 @@ def correlation_metrics(model: str, logging: bool = False) -> Table:
         if logging:
             print(f"Finished {transformation}")
     return output
+
+def best_resolution_unisal(csv_path: str) -> None:
+    """
+    Find the best resolution for the UNISAL model, given a csv file of benchmark results.
+    """
+    NSS = {}
+    IG = {}
+    with open(csv_path, 'r', newline='') as csvfile:
+        reader = DictReader(csvfile)
+        for row in reader:
+            if row['model'].startswith('unisal'):
+                if row['model'] not in NSS:
+                    NSS[row['model']] = { 'mean': [], 'median': [], 'std': [] }
+                    IG[row['model']] = { 'mean': [], 'median': [], 'std': [] }
+                NSS[row['model']]['mean'].append(float(row['mean_nss']))
+                NSS[row['model']]['median'].append(float(row['median_nss']))
+                NSS[row['model']]['std'].append(float(row['std_nss']))
+                IG[row['model']]['mean'].append(float(row['mean_ig']))
+                IG[row['model']]['median'].append(float(row['median_ig']))
+                IG[row['model']]['std'].append(float(row['std_ig']))
+    for model in NSS:
+        print(model, mean(NSS[model]['mean']), mean(IG[model]['mean']), mean(NSS[model]['median']), mean(IG[model]['median']), mean(NSS[model]['std']), mean(IG[model]['std']))

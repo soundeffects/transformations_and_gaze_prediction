@@ -1,8 +1,9 @@
 from deepgaze_pytorch import DeepGazeIIE
-from numpy import load, array, save
+from numpy import exp, load, array, save
 from pathlib import Path
 from PIL import Image
 from scipy.ndimage import zoom
+from scipy.special import logsumexp
 from torch import tensor, FloatTensor, cuda, no_grad
 
 DEVICE = 'cuda'
@@ -21,6 +22,7 @@ def predict(image_paths: list[Path], centerbias_path: Path, resolution: (int, in
         centerbias = load(centerbias_path)
         shape_scaling = (numpy_resolution[0] / centerbias.shape[0], numpy_resolution[1] / centerbias.shape[1])
         centerbias = zoom(centerbias, shape_scaling)
+        centerbias -= logsumexp(centerbias)
         centerbias_tensor = tensor(centerbias).unsqueeze(0).type(FloatTensor).to(DEVICE)
         for image_path in image_paths:
             output_path = Path(str(image_path).replace('images', output_name).replace('png', 'npy'))
@@ -49,6 +51,6 @@ def predict_predefined_resolutions() -> None:
     Predict the saliency map for all images in the dataset at `../data` using the DeepGazeIIE model for predefined resolutions.
     """
     predict_dataset((1024, 576), "deepgaze_1024_576")
-    predict_dataset((1920, 1080), "deepgaze_1920_1080")
 
-predict_predefined_resolutions()
+if __name__ == "__main__":
+    predict_predefined_resolutions()
