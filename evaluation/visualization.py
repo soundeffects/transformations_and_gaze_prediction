@@ -3,7 +3,7 @@ from matplotlib import pyplot
 from numpy import polyfit, corrcoef
 from scipy.stats import zscore
 
-def visualize_correlations(csv_file: str, z_score_threshold: float = 2.5, kl_z_score_threshold: float = 0.1) -> None:
+def visualize_correlations(csv_file: str, z_score_threshold: float = 3.0) -> None:
     """
     Visualize the correlations between the reference and transformed saliency maps.
     """
@@ -15,7 +15,7 @@ def visualize_correlations(csv_file: str, z_score_threshold: float = 2.5, kl_z_s
         for row in rows:
             transformation = row[0]
             if transformation not in transformations:
-                transformations[transformation] = { 'ssim': [], 'cc': [], 'kl': [], 'kl_reverse': [], 'reference_nss': [], 'reference_ig': [], 'transformed_nss': [], 'transformed_ig': [] }
+                transformations[transformation] = { 'ssim': [], 'cc': [], 'kl': [], 'reference_nss': [], 'reference_ig': [], 'transformed_nss': [], 'transformed_ig': [] }
                 table_row_labels.append(transformation)
             for index, statistic in enumerate(transformations[transformation].keys()):
                 transformations[transformation][statistic].append(float(row[index + 2]))
@@ -25,8 +25,8 @@ def visualize_correlations(csv_file: str, z_score_threshold: float = 2.5, kl_z_s
         zscores = {}
         for statistic in transformations[transformation]:
             zscores[statistic] = zscore(transformations[transformation][statistic])
-        rows = 3
-        columns = 4
+        rows = 2
+        columns = 5
         figure, axes = pyplot.subplots(rows, columns)
         figure.suptitle(transformation)
         table_row = []
@@ -36,9 +36,7 @@ def visualize_correlations(csv_file: str, z_score_threshold: float = 2.5, kl_z_s
             for index in range(len(transformations[transformation][stat_1])):
                 zscore_1 = zscores[stat_1][index]
                 zscore_2 = zscores[stat_2][index]
-                kl_passed = stat_1 == 'kl' and zscore_1 < kl_z_score_threshold
-                other_passed = stat_1 != 'kl' and zscore_1 < z_score_threshold
-                if kl_passed or other_passed and zscore_2 < z_score_threshold:
+                if zscore_1 < z_score_threshold and zscore_2 < z_score_threshold:
                     x.append(transformations[transformation][stat_1][index])
                     y.append(transformations[transformation][stat_2][index])
             return x, y, stat_1, stat_2
@@ -46,13 +44,11 @@ def visualize_correlations(csv_file: str, z_score_threshold: float = 2.5, kl_z_s
             plot_data('ssim', 'transformed_nss'),
             plot_data('cc', 'transformed_nss'),
             plot_data('kl', 'transformed_nss'),
-            plot_data('kl_reverse', 'transformed_nss'),
             plot_data('reference_nss', 'transformed_nss'),
             plot_data('reference_ig', 'transformed_nss'),
             plot_data('ssim', 'transformed_ig'),
             plot_data('cc', 'transformed_ig'),
             plot_data('kl', 'transformed_ig'),
-            plot_data('kl_reverse', 'transformed_ig'),
             plot_data('reference_nss', 'transformed_ig'),
             plot_data('reference_ig', 'transformed_ig'),
         ]
@@ -77,4 +73,4 @@ def visualize_correlations(csv_file: str, z_score_threshold: float = 2.5, kl_z_s
     for index, table_row in enumerate(table_rows):
         print(f'{table_row_labels[index]}, {",".join(table_row)}')
 
-visualize_correlations("correlation_metrics.csv", z_score_threshold=3.0, kl_z_score_threshold=3.0)
+visualize_correlations("../results/correlation_metrics.csv")

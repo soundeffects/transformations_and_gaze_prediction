@@ -96,7 +96,7 @@ def correlation_metrics(model: str, logging: bool = False) -> Table:
     """
     Compute the correlation metrics (as described in section 4 of the readme) for a given model.
     """
-    output = Table(['transformation', 'image_number', 'ssim', 'cc', 'kl', 'kl_reverse', 'reference_nss', 'reference_ig', 'transformed_nss', 'transformed_ig'])
+    output = Table(['transformation', 'image_number', 'ssim', 'cc', 'kl', 'reference_nss', 'reference_ig', 'transformed_nss', 'transformed_ig'])
     transformations = []
     reference_directory = None
     for directory in directories:
@@ -116,7 +116,6 @@ def correlation_metrics(model: str, logging: bool = False) -> Table:
             reference_saliency_map = load_saliency_map(reference_directory, model, image_number, (1920, 1080))
             cc = CC(transformed_saliency_map, reference_saliency_map)
             kl = KL(reference_saliency_map, transformed_saliency_map)
-            kl_reverse = KL(transformed_saliency_map, reference_saliency_map)
             reference_fixations = load_fixations(reference_directory, image_number)
             transformed_fixations = load_fixations(transformation_directory, image_number)
             reference_nss = NSS(reference_saliency_map, reference_fixations)
@@ -129,7 +128,6 @@ def correlation_metrics(model: str, logging: bool = False) -> Table:
                 'ssim': ssim,
                 'cc': cc,
                 'kl': kl,
-                'kl_reverse': kl_reverse,
                 'reference_nss': reference_nss,
                 'reference_ig': reference_ig,
                 'transformed_nss': transformed_nss,

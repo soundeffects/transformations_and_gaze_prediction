@@ -83,12 +83,7 @@ from the CAT2000 Dataset).
 - Separate and analyze any transformations where CC-NSS/KL-NSS correlation is high, to see if there is a class of transformation that can be reasoned about
 
 ### Step 6: Write paper
-- [1 hour] Intro stating the problem domain these tools operate in and practical use cases of the tools (including our desired use case for games)
-- [1 hour] State problem and how we found it, explain the terms, then restate the problem and how we found it
-- [1 hour] Terms to explain: the metrics we used to evaluate performance/compare saliency maps, and why we selected them
-- [1 hour] Terms to explain: interpreting the performance with respect to the reference performance, centerbias, ground truth, and MIT Benchmark
-- [2 hours] We dig deeper and show relationship between metrics using ANCOVA
-- [1 hour] Do the above for every section
+- Consider adding some snippet explaining "label-preserving" transformations, and how we couldn't isolate any unique effects for that class of transformations.
 
 ### Step 7: Final Checkup
 - [1 hour] Verify that metric computations are correct
