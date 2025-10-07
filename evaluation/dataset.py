@@ -4,7 +4,7 @@ from PIL import Image
 from typing import List
 from zipfile import ZipFile, ZIP_DEFLATED
 
-directories = [
+transformation_directories = [
     "../data/Boundary",
     "../data/Compression_1",
     "../data/Compression_2",
@@ -18,13 +18,23 @@ directories = [
     "../data/MotionBlur_2",
     "../data/Noise_1",
     "../data/Noise_2",
-    "../data/Reference",
     "../data/Rotation_1",
     "../data/Rotation_2",
     "../data/Shearing_1",
     "../data/Shearing_2",
     "../data/Shearing_3",
 ]
+
+directories = [
+    "../data/Reference",
+    *transformation_directories,
+]
+
+def directories_omitting(omitting: list[str]) -> list[str]:
+    filtered_directories = directories.copy()
+    for omitting_directory in omitting:
+        filtered_directories = [directory for directory in filtered_directories if omitting_directory not in directory]
+    return filtered_directories
 
 def zip_paths(base_path: Path, paths: List[Path], output_path: str) -> None:
     with ZipFile(output_path, 'w', ZIP_DEFLATED, compresslevel=6) as output_file:

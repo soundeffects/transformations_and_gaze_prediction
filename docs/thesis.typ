@@ -185,11 +185,16 @@ Under this definition of a saliency map, pixels with the highest intensity are t
 
 When collecting gaze distribution data from human subjects, we receive a collection of saccadic fixation points from an eye tracker over the area of the image presented to the subject. Converting these points into a saliency map can be done by brightening the pixels each point falls under and normalizing to a probability distribution, but such a saliency map is "speckled" rather than smooth, and likely diverges from the real gaze distribution because of the limited sample size of fixation points.
 
-// figure of speckled saliency map
-
 When testing greater fixation point sample sizes, we see that on the limit of infinite sample size, the saliency map would converge to a smooth probability distribution rather than a discrete point cloud. Thus, if we wish to obtain a better estimate of the real gaze distribution, we should blur the saliency map with a Gaussian kernel to obtain a smoother probability distribution. This step is referred to as "regularization". (It is convention to set the size of the Gaussian kernel to a pixel value equivalent to one degree of visual angle in length from the human subject's perspective.)
 
-// figure of a smoothed saliency map
+#figure(
+  grid(
+    columns: (1fr, 1fr),
+    image("fixation_map_example.png", width: 150pt),
+    image("real_map_example.png", width: 150pt),
+  ),
+  caption: "An example of a 'speckled' saliency map (left) with 15 randomly placed fixation points, and a smoothed saliency map (right) produced from the other saliency map by a regularization step using a gaussian blur with kernel size (sigma) of 10 pixels.",
+)
 
 This regularized saliency map is our best proxy for the real gaze distribution. We will refer to it as the "real map" for brevity.
 
@@ -199,7 +204,10 @@ We wish also to find a lower reference point for performance. For a prediction t
 
 An adequate lower reference point can be computed by collecting all fixation points for the entire dataset of interest, and regularizing similar to the real map. This is usually referred to as the "center bias", due to the prevalent tendency of most human subjects (and therefore datasets of human gaze behavior) to fixate towards the center of an image. The centerbias will account for most dataset-wide biases because of the averaging across all images in the dataset, and it will weight any fixations which were specific to any given image to a lesser degree due to the averaging as well.
 
-// figure of centerbias
+#figure(
+  image("reference_centerbias.png", width: 200pt),
+  caption: "The centerbias computed by averaging all fixation points for the reference group of images in our dataset, with a kernel size of 57 pixels.",
+)
 
 (Note that one can compute a more "competitive" lower reference point by using a cross-validation approach to improve upon the centerbias, as shown by Matthias Kümmerer, Thomas S. A. Wallis, and Matthias Bethge @information-gain. We find that the improvement this step provides is marginal, and so we omit the process. For more details, see the "Method" section.)
 
@@ -214,15 +222,35 @@ Unfortunately, we were unable to replicate the performance expected from the Dee
 = METHOD
 We use the dataset provided by Che et al. @gaze-transformations, which includes 100 randomly selected images from the CAT2000 dataset @cat2000, with 18 different transformations applied to each image. This produces a total of 1900 images, including the reference untransformed images. See figure 2 for examples of all 18 transformations. Gaze fixation points are recorded for each image.
 
-// figure of all 18 transformations
+#figure(
+  image("transformation_examples.png", width: 240pt),
+  caption: "A zoomed in window of one of the images in the dataset, demonstrating all transformations except for Cropping_1 and Cropping_2 applied to the reference image."
+)
+
+#figure(
+  grid(
+    columns: (1fr, 1fr, 1fr),
+    image("reference_example.png", width: 100pt),
+    image("cropping_1_example.png", width: 100pt),
+    image("cropping_2_example.png", width: 100pt),
+    gutter: 3pt,
+  ),
+  caption: "Examples of the Cropping_1 (second) and Cropping_2 (third) transformations applied to the reference image (first)."
+)
 
 We compute the centerbias for the reference (untransformed) set and each transformation set by collecting all fixation points for the images of the transformation and applying a Gaussian blur with a kernel size of 57 pixels, which is one degree of visual angle according to Che et al. As reported in the "Results" section, we find that the centerbias performs closely to the reported performance of the centerbias on the MIT/Tuebingen Saliency Benchmark for the CAT2000 dataset for the reference (untransformed) images. Given this, we decide to omit any cross-validation step as improvements would be marginal.
 
-// Centerbias example
-
 We also compute the real map for each image using the same Gaussian blur kernel on the fixation points for each image separately.
 
-// Real map example
+#figure(
+  grid(
+    columns: (1fr, 1fr),
+    image("reference_real_map.png", width: 150pt),
+    image("reference_centerbias.png", width: 150pt),
+    gutter: 3pt,
+  ),
+  caption: "Left is the real map for the reference image, right is the centerbias for the reference group in the dataset.",
+)
 
 We run the DeepGaze IIE @deepgazeiie and UNISAL @unisal models on all reference and transformed images. The dataset images are at 1920x1080 resolution, and we run inference for both models at this resolution, but we also run inference for downscaled images which better match the expected resolution of the models. DeepGaze IIE @deepgazeiie expects an image with a width of 1024, so we downscale the images to 1024x576 for another DeepGaze inference. UNISAL @unisal expects several resolutions for different datasets it was trained on, so we run an inference for the resolutions of 384x224 (which matches the DHF1K dataset @dhf1k resolution), 384x288 (which matches the SALICON dataset @salicon resolution), and 384x216 (which preserves the ratio of the 1920x1080 image, but with a width of 384). We run inference for each model at each resolution, and intend to select the best-performing resolution for each model.
 
@@ -267,9 +295,9 @@ We recognize that it would be ideal to compute a measure of how likely it is tha
 We take efforts to ensure our study is reproducible. Find our code at our repository on Codeberg @our-code.
 
 = RESULTS
-We find that our centerbias performs closely to the reported performance of the centerbias on the MIT/Tuebingen Saliency Benchmark for the CAT2000 dataset for the reference (untransformed) images. (More accurate measurements here)
+We find that our centerbias performs closely to the reported performance of the centerbias on the MIT/Tuebingen Saliency Benchmark for the CAT2000 dataset for the reference (untransformed) images. Our centerbias achieves a mean NSS of 2.0664535, whereas the reported mean NSS for the centerbias on the MIT/Tuebingen Saliency Benchmark for the CAT2000 dataset (which the Che et al. dataset is derived from) is 2.0870. The difference between the two scores is 
 
-We also find that the UNISAL model performs similarly to the expectation set by the MIT/Tuebingen Saliency Benchmark for the CAT2000 dataset for the reference (untransformed) images. (More accurate measurements here)
+We also find that the UNISAL model performs similarly to the expectation set by the MIT/Tuebingen Saliency Benchmark for the CAT2000 dataset for the reference (untransformed) images when considering the IG metric. For the NSS metric, UNISAL actually outperforms the expectation set by the MIT/Tuebingen Saliency Benchmark for the CAT2000 dataset for the reference (untransformed) images.
 
 However, we were unable to replicate the performance expected from the DeepGaze IIE model, despite our best efforts to follow the protocol outlined in the DeepGaze IIE paper. (More accurate measurements of how bad here) We have reached out to the authors of the paper for comment, but have not heard back yet, and so we continue our study only using the UNISAL model.
 
@@ -283,17 +311,80 @@ For the second step of our study, we find that there usually exists a strong cor
 
 // graphs
 
+A table of all correlation coefficients is as follows:
+
+Boundary, 0.28,0.34,-0.04,0.52,0.33,-0.10,0.05,0.04,0.13,0.47
+Compression_1, 0.15,0.31,0.10,0.86,0.51,0.16,0.15,0.18,0.59,0.68
+Compression_2, 0.31,0.35,-0.11,0.82,0.50,0.24,0.20,0.07,0.49,0.61
+ContrastChange_1, 0.29,0.57,-0.43,0.43,0.01,0.21,0.32,-0.27,0.14,0.16
+ContrastChange_2, 0.30,0.64,-0.52,0.11,-0.21,-0.03,0.12,-0.30,-0.16,0.06
+Cropping_1, -0.00,0.25,-0.12,0.84,0.52,0.29,0.34,-0.27,0.58,0.67
+Cropping_2, 0.19,0.29,-0.23,0.83,0.51,0.17,0.06,-0.06,0.42,0.61
+Inversion, 0.32,-0.26,0.22,0.74,0.35,0.21,-0.40,0.42,0.34,0.65
+Mirroring, 0.24,-0.29,0.27,0.93,0.53,0.27,-0.49,0.47,0.52,0.85
+MotionBlur_1, 0.25,0.11,-0.01,0.78,0.38,0.26,0.01,0.02,0.45,0.54
+MotionBlur_2, 0.34,0.12,0.08,0.74,0.30,0.28,0.07,0.08,0.35,0.49
+Noise_1, 0.20,0.18,-0.03,0.87,0.43,-0.07,-0.07,0.09,0.42,0.74
+Noise_2, 0.29,0.36,-0.11,0.72,0.32,-0.10,0.10,0.06,0.32,0.64
+Rotation_1, 0.35,0.51,-0.49,0.55,0.18,0.33,-0.11,0.04,0.30,0.41
+Rotation_2, 0.32,0.43,-0.50,0.49,0.14,0.10,-0.10,0.08,0.26,0.36
+Shearing_1, 0.34,0.37,-0.32,0.77,0.36,0.32,-0.07,0.05,0.38,0.67
+Shearing_2, 0.36,0.22,-0.14,0.74,0.42,0.30,-0.08,0.16,0.30,0.65
+Shearing_3, 0.28,0.33,-0.25,0.46,0.07,0.23,-0.06,0.06,0.06,0.43
+
 This trend tells us that, at least for the majority of transformations tested, an increase in performance on the reference image leads to an increase in performance on the transformed image. However, upon further analysis we find that this relationship is further qualified.
 
 We note that for those transformations which suffered more degradation during the first step, the correlation coefficients were weaker in the second step. Upon closer inspection, we find that this is primarily due to a loss in performance for transformed images which performed well before transformation. In other words, if a reference image was hard to predict, and the prediction made was poor, then it would be roughly in line with the performance of the transformed image. However, if an image was easy to predict, and the prediction made was good, then the transformed image's performance would lag behind and would not improve as much as the reference image's performance.
 
 // curve graph
 
+NSS Correlation coefficient and quadratic delta
+Boundary, 0.52, -0.05
+Compression_1, 0.86, -0.01
+Compression_2, 0.82, -0.08
+ContrastChange_1, 0.43, -0.13
+ContrastChange_2, 0.11, -0.09
+Cropping_1, 0.84, -0.05
+Cropping_2, 0.83, -0.02
+Inversion, 0.74, -0.05
+Mirroring, 0.93, 0.01
+MotionBlur_1, 0.78, -0.06
+MotionBlur_2, 0.74, -0.01
+Noise_1, 0.87, -0.08
+Noise_2, 0.72, -0.13
+Rotation_1, 0.55, -0.16
+Rotation_2, 0.49, -0.07
+Shearing_1, 0.77, -0.08
+Shearing_2, 0.74, -0.07
+Shearing_3, 0.46, -0.12
+
+IG Correlation coefficient and quadratic delta
+Boundary, 0.47, 0.12
+Compression_1, 0.68, -0.12
+Compression_2, 0.61, -0.02
+ContrastChange_1, 0.16, -0.17
+ContrastChange_2, 0.06, -0.12
+Cropping_1, 0.67, 0.18
+Cropping_2, 0.61, 0.13
+Inversion, 0.65, -0.03
+Mirroring, 0.85, -0.06
+MotionBlur_1, 0.54, -0.04
+MotionBlur_2, 0.49, 0.01
+Noise_1, 0.74, -0.13
+Noise_2, 0.64, 0.02
+Rotation_1, 0.41, 0.06
+Rotation_2, 0.36, 0.08
+Shearing_1, 0.67, -0.08
+Shearing_2, 0.65, 0.01
+Shearing_3, 0.43, 0.08
+
 With this, we can hypothesize that many transformations impose a plateau on prediction accuracy which is lower than the reference images, for current models.
 
 For the ContrastChange and Rotation transformations, for which the NSS and IG correlations fell significantly below 0.5, we find that there does exist a weaker relationship (hovering around 0.5) between the CC and KL metrics between the reference prediction and the transformed prediction to the transformed NSS performance. This tells us that, for these transformations which the models perform poorly on, if their prediction for the transformed image looks significantly different from their reference prediction, then it is likely that the transformed prediction will perform poorly. This relationship between CC/KL to transformed NSS does not hold true for all transformations which the reference NSS to transformed NSS relationship was weak. Specifically, it does not hold true for the Boundary, MotionBlur_2, and Shearing_3 transformations.
 
 Further data collection and testing on a greater number of transformations must be done to determine if a weak NSS to transformed NSS relationship is a reliable predictor of a stronger CC/KL to transformed NSS relationship, or if this is a unique property of the ContrastChange and Rotation transformations. In absence of this data, we can hypothesize that the CC/KL metric is a weak heuristic for predicting the performance of a model on contrast change and rotation transformations.
+
+You can find all data collected from our study compiled in the "results" directory of our repository on Codeberg @our-code.
 
 = CONCLUSION
 We find that, for all transformations barring the Mirror transformation, the UNISAL model performs worse than the reference set of images. However, there is still a correlation between performance on a reference image and performance on a transformed image, which allows us to hypothesize that a transformation imposes a plateau on prediction accuracy which is lower than the reference images, for current state-of-the-art gaze prediction models.
