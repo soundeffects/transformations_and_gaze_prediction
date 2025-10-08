@@ -53,7 +53,7 @@
 #let month = "August"
 #let degree = "Master of Science"
 #let department = "School of Computing"
-#let title = "TRANSFORMING IMAGES DEMONSTRATES DEGRADATION OF GAZE FIXATION PREDICTION PERFORMANCE"
+#let title = "DIGITAL IMAGE TRANSFORMATIONS DEGRADE GAZE PREDICTION ACCURACY"
 #let abstract = [  
   Using saccadic fixation points collected on images and digital transformations of those images, we show that common transformations--including cropping, rotation, contrast adjustment, and noise--degrade prediction accuracy for state-of-the-art gaze fixation prediction models. We fail to find any generalizable heuristics which indicate the degradation of prediction accuracy for image transformations; the only known way to confirm an arbitrary transformation has caused a degradation in prediction accuracy is to collect real gaze distribution data on transformed images.
 ]
