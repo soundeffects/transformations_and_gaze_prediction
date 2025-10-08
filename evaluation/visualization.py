@@ -170,7 +170,7 @@ def performance_degradation(csv_file: str, model: str, metric: str) -> None:
     pyplot.subplots_adjust(wspace=0.3, hspace=0.6)
     pyplot.show()
 
-def pairwise_correlations(csv_file: str, stat_1: str, stat_2: str, z_score_threshold: float = 3.0) -> None:
+def pairwise_correlations(csv_file: str, stat_1: str, stat_2: str, z_score_threshold: float = 3.0, curve: bool = True) -> None:
     x_values = {}
     y_values = {}
     with open(csv_file, 'r') as file:
@@ -202,19 +202,19 @@ def pairwise_correlations(csv_file: str, stat_1: str, stat_2: str, z_score_thres
         correlation = corrcoef(x, y)[0, 1]
         slope, intercept = polyfit(x, y, 1)
         line = { 'x': [min(x), max(x)], 'y': [slope * min(x) + intercept, slope * max(x) + intercept] }
-        quadratic_delta, linear_delta, intercept = polyfit(x, y, 2)
-        curve = { 'x': [], 'y': [] }
-        for x_value in linspace(min(x), max(x), 100):
-            curve['x'].append(x_value)
-            curve['y'].append(quadratic_delta * x_value**2 + linear_delta * x_value + intercept)
+        if curve:
+            quadratic_delta, linear_delta, intercept = polyfit(x, y, 2)
+            curve_data = { 'x': [], 'y': [] }
+            for x_value in linspace(min(x), max(x), 100):
+                curve_data['x'].append(x_value)
+                curve_data['y'].append(quadratic_delta * x_value**2 + linear_delta * x_value + intercept)
+            axes[row, column].plot(curve_data['x'], curve_data['y'], color='red')
         axes[row, column].scatter(x, y, alpha=0.5)
         axes[row, column].plot(line['x'], line['y'], color='red', alpha=0.5)
-        axes[row, column].plot(curve['x'], curve['y'], color='red')
         axes[row, column].set_xlabel(f"(CC: {correlation:.2f})")
         axes[row, column].set_title(transformation)
-        print(f'{transformation}, {correlation:.2f}, {quadratic_delta:.2f}')
     pyplot.subplots_adjust(wspace=0.3, hspace=0.6)
     pyplot.show()
 
-pairwise_correlations("../results/unisal_correlation_metrics.csv", "reference_nss", "transformed_nss")
-pairwise_correlations("../results/unisal_correlation_metrics.csv", "reference_ig", "transformed_ig")
+performance_degradation("../results/all_performance_averages.csv", "unisal_384_224", "nss")
+performance_degradation("../results/all_performance_averages.csv", "unisal_384_224", "ig")
