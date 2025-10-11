@@ -11,7 +11,8 @@ DEVICE = 'cuda'
 def predict(image_paths: list[Path], centerbias_path: Path, resolution: (int, int), output_name: str) -> None:
     """
     Predict the saliency map for a set of images using the DeepGazeIIE model. Rescales images to be the resolution
-    provided, in the order of (width, height).
+    provided, in the order of (width, height). Notes that it requires the image input to be integer values between
+    0 and 255, and not normalized to 0-1. It will also require a centerbias which has been
     """
     numpy_resolution = (resolution[1], resolution[0])
     with no_grad():
@@ -23,13 +24,13 @@ def predict(image_paths: list[Path], centerbias_path: Path, resolution: (int, in
         shape_scaling = (numpy_resolution[0] / centerbias.shape[0], numpy_resolution[1] / centerbias.shape[1])
         centerbias = zoom(centerbias, shape_scaling)
         centerbias -= logsumexp(centerbias)
-        centerbias_tensor = tensor(centerbias).unsqueeze(0).type(FloatTensor).to(DEVICE)
+        centerbias_tensor = tensor(centerbias).unsqueeze(0).to(DEVICE)
         for image_path in image_paths:
             output_path = Path(str(image_path).replace('images', output_name).replace('png', 'npy'))
             image = Image.open(image_path)
             image = image.resize(resolution, Image.Resampling.LANCZOS)
-            image_data = array(image) / 255
-            image_tensor = tensor(image_data.transpose(2, 0, 1)).unsqueeze(0).type(FloatTensor)
+            image_data = array(image)
+            image_tensor = tensor(image_data.transpose(2, 0, 1)).unsqueeze(0)
             image_tensor = image_tensor.to(DEVICE)
             prediction = model(image_tensor, centerbias_tensor)
             detached_prediction = prediction.detach().cpu().squeeze().numpy()
@@ -51,6 +52,7 @@ def predict_predefined_resolutions() -> None:
     Predict the saliency map for all images in the dataset at `../data` using the DeepGazeIIE model for predefined resolutions.
     """
     predict_dataset((1024, 576), "deepgaze_1024_576")
+    predict_dataset((1920, 1080), "deepgaze_1920_1080")
 
 if __name__ == "__main__":
     predict_predefined_resolutions()
