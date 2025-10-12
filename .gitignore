@@ -12,3 +12,6 @@ wheels/
 # Dataset (should be shared through google drive)
 data/
 dataset.zip
+
+# MacOS
+.DS_Store

@@ -145,24 +145,24 @@ def performance_degradation(csv_file: str, models: list[str], model_names: list[
             elif model_name == 'real':
                 real_performance[transformation] = value
     plots = [
-        ('Reference', 'Boundary'),
-        ('Reference', 'Compression_1', 'Compression_2'),
-        ('Reference', 'ContrastChange_1', 'ContrastChange_2'),
-        ('Reference', 'Cropping_1', 'Cropping_2'),
-        ('Reference', 'Inversion'),
-        ('Reference', 'Mirroring'),
-        ('Reference', 'MotionBlur_1', 'MotionBlur_2'),
-        ('Reference', 'Noise_1', 'Noise_2'),
-        ('Reference', 'Rotation_1', 'Rotation_2'),
-        ('Reference', 'Shearing_1', 'Shearing_2', 'Shearing_3'),
+        ('Boundary', 'Reference', 'Boundary'),
+        ('Compression', 'Reference', 'Compression_1', 'Compression_2'),
+        ('Contrast Change', 'Reference', 'ContrastChange_1', 'ContrastChange_2'),
+        ('Cropping', 'Reference', 'Cropping_1', 'Cropping_2'),
+        ('Inversion', 'Reference', 'Inversion'),
+        ('Mirroring', 'Reference', 'Mirroring'),
+        ('Motion Blur', 'Reference', 'MotionBlur_1', 'MotionBlur_2'),
+        ('Noise', 'Reference', 'Noise_1', 'Noise_2'),
+        ('Rotation', 'Reference', 'Rotation_1', 'Rotation_2'),
+        ('Shearing', 'Reference', 'Shearing_1', 'Shearing_2', 'Shearing_3'),
     ]
     for index, plot in enumerate(plots):
         row = index // columns
         column = index % columns
-        x = [ i for i in range(len(plot)) ]
-        y = [[ model_performance[model][transformation] for transformation in plot ] for model in models ]
-        centerbias_y = [ centerbias_performance[transformation] for transformation in plot ]
-        real_y = [ real_performance[transformation] for transformation in plot ]
+        x = [ i for i in range(len(plot) - 1) ]
+        y = [[ model_performance[model][transformation] for transformation in plot[1:] ] for model in models ]
+        centerbias_y = [ centerbias_performance[transformation] for transformation in plot[1:] ]
+        real_y = [ real_performance[transformation] for transformation in plot[1:] ]
         color_index = 0
         for values in y:
             axes[row, column].plot(x, values, color=colors[color_index])
@@ -176,10 +176,10 @@ def performance_degradation(csv_file: str, models: list[str], model_names: list[
         color_index += 1
         axes[row, column].plot(x, real_y, color=colors[color_index])
         axes[row, column].fill_between(x, centerbias_y, real_y, color='red', alpha=0.2)
-        axes[row, column].set_xticks(x, plot, rotation=70)
+        axes[row, column].set_xticks(x, plot[1:], rotation=25)
         axes[row, column].set_xlabel(losses)
-        axes[row, column].set_title(f'{plot[0]} to {plot[-1]}')
-    pyplot.subplots_adjust(wspace=0.3, hspace=0.6)
+        axes[row, column].set_title(plot[0])
+    pyplot.subplots_adjust(wspace=0.3, hspace=0.7, bottom=0.2)
     pyplot.show()
 
 def all_performance_degradation() -> None:
@@ -270,4 +270,4 @@ def all_pairwise_correlations() -> None:
         curve=False
     )
 
-all_pairwise_correlations()
+all_performance_degradation()

@@ -7,3 +7,7 @@ the `docs` directory in this repository.
 - Install [`uv`](https://docs.astral.sh/uv/#installation) (Python package manager)
 - To run the DeepGaze prediction code in `deepgaze_predict`, you need to add the DeepGaze github repository as a dependency using `uv pip install -e https://github.com/matthias-k/DeepGaze`
 - Run using the shell script: `sh run_experiment.sh`
+
+## TODO
+- Clean up results sections figures and captions
+- Clarify that our Gold Standard has a different computation method than Kummerer, and exists more as a reference point for current performance than a goal for potential future performance
