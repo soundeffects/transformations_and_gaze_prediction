@@ -7,3 +7,6 @@ the `docs` directory in this repository.
 - Install [`uv`](https://docs.astral.sh/uv/#installation) (Python package manager)
 - To run the DeepGaze prediction code in `deepgaze_predict`, you need to add the DeepGaze github repository as a dependency using `uv pip install -e https://github.com/matthias-k/DeepGaze`
 - Run using the shell script: `sh run_experiment.sh`
+
+## License
+The contents of this repository are distributed under the MIT License, as seen in the `license` file, except for the thesis manuscript found at the location `docs/thesis.typ`, which is distributed under the [CC BY-SA 4.0 license](https://creativecommons.org/licenses/by-sa/4.0/).

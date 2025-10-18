@@ -1,10 +1,11 @@
 from csv import DictReader
 from centerbias import centerbiases_for_transformations
-from metrics import CC, KL, NSS, IG, SSIM
-from numpy import mean, std, median
-from pathlib import Path
-from utilities import load_centerbias, load_image, load_saliency_map, load_fixations, get_transformation_name, load_real_saliency_map
 from dataset import directories, Table
+from metrics import CC, KL, NSS, IG, SSIM
+from numpy import mean, std, median, polyfit
+from pathlib import Path
+from scipy.stats import zscore
+from utilities import load_centerbias, load_image, load_saliency_map, load_fixations, get_transformation_name, load_real_saliency_map
 
 def centerbias_comparison_benchmark(new_kernel_size: int, old_kernel_size: int) -> Table:
     """
@@ -157,3 +158,59 @@ def best_resolution_unisal(csv_path: str) -> None:
                 IG[row['model']]['std'].append(float(row['std_ig']))
     for model in NSS:
         print(model, mean(NSS[model]['mean']), mean(IG[model]['mean']), mean(NSS[model]['median']), mean(IG[model]['median']), mean(NSS[model]['std']), mean(IG[model]['std']))
+
+def quadratic_terms(
+    csv_files: list[str],
+    model_names: list[str],
+    stat_1: str,
+    stat_2: str,
+    z_score_threshold: float = 3.0,
+) -> None:
+    x_values = { model_name: {} for model_name in model_names }
+    y_values = { model_name: {} for model_name in model_names }
+    transformations = []
+    samples = 0
+    output = Table(['transformation', 'model', 'quadratic_term'])
+    for csv_file, model_name in zip(csv_files, model_names):
+        with open(csv_file, 'r') as file:
+            rows = DictReader(file)
+            for row in rows:
+                if row['transformation'] not in transformations:
+                    transformations.append(row['transformation'])
+                if row['transformation'] not in x_values[model_name]:
+                    x_values[model_name][row['transformation']] = []
+                    y_values[model_name][row['transformation']] = []
+                x_values[model_name][row['transformation']].append(float(row[stat_1]))
+                y_values[model_name][row['transformation']].append(float(row[stat_2]))
+                samples = max(samples, int(row['image_number']))
+    for index, transformation in enumerate(transformations):
+        for model_name in model_names:
+            x_zscores = zscore(x_values[model_name][transformation])
+            y_zscores = zscore(y_values[model_name][transformation])
+            x = []
+            y = []
+            for sample_index in range(samples):
+                if x_zscores[sample_index] < z_score_threshold and y_zscores[sample_index] < z_score_threshold:
+                    x.append(x_values[model_name][transformation][sample_index])
+                    y.append(y_values[model_name][transformation][sample_index])
+            quadratic_delta, _, _ = polyfit(x, y, 2)
+            output.add_row({
+                'transformation': transformation,
+                'model': model_name,
+                'quadratic_term': quadratic_delta})
+    return output
+
+def quadratic_term_averages(csv_files: list[str]) -> Table:
+    quadratic_terms = []
+    for csv_file in csv_files:
+        with open(csv_file, 'r') as file:
+            rows = DictReader(file)
+            for row in rows:
+                quadratic_terms.append(float(row['quadratic_term']))
+    print(f"mean: {mean(quadratic_terms)}")
+    positive = [term for term in quadratic_terms if term > 0]
+    print(f"positive mean: {mean(positive)}, positive count: {len(positive)}")
+    negative = [term for term in quadratic_terms if term < 0]
+    print(f"negative mean: {mean(negative)}, negative count: {len(negative)}")
+
+quadratic_term_averages(["../results/quadratic_terms_nss.csv", "../results/quadratic_terms_ig.csv"])

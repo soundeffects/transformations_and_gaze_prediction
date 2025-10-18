@@ -251,23 +251,21 @@ def pairwise_correlations(
 
 def all_pairwise_correlations() -> None:
     pairwise_correlations(
-        ["../results/deepgaze_correlation_metrics.csv", "../results/unisal_correlation_metrics.csv"],
-        ["DeepGaze IIE", "UNISAL"],
+        ["../results/unisal_correlation_metrics.csv", "../results/deepgaze_correlation_metrics.csv"],
+        ["UNISAL", "DeepGaze IIE"],
         "reference_nss",
         "transformed_nss"
     )
     pairwise_correlations(
-        ["../results/deepgaze_correlation_metrics.csv", "../results/unisal_correlation_metrics.csv"],
-        ["DeepGaze IIE", "UNISAL"],
+        ["../results/unisal_correlation_metrics.csv", "../results/deepgaze_correlation_metrics.csv"],
+        ["UNISAL", "DeepGaze IIE"],
         "reference_ig",
         "transformed_ig"
     )
     pairwise_correlations(
-        ["../results/deepgaze_correlation_metrics.csv", "../results/unisal_correlation_metrics.csv"],
-        ["DeepGaze IIE", "UNISAL"],
+        ["../results/unisal_correlation_metrics.csv", "../results/deepgaze_correlation_metrics.csv"],
+        ["UNISAL", "DeepGaze IIE"],
         "cc",
         "transformed_nss", 
         curve=False
     )
-
-all_performance_degradation()
