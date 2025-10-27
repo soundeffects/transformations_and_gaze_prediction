@@ -7,48 +7,6 @@ from pathlib import Path
 from scipy.stats import zscore
 from utilities import load_centerbias, load_image, load_saliency_map, load_fixations, get_transformation_name, load_real_saliency_map
 
-def centerbias_comparison_benchmark(new_kernel_size: int, old_kernel_size: int) -> Table:
-    """
-    Run a comparison on a new centerbias with a different kernel size against an
-    old centerbias using the difference in the NSS score and the information gain
-    to evaluation the difference in performance of the two centerbiases.
-    """
-    centerbiases_for_transformations(sigma=new_kernel_size)
-    centerbiases_for_transformations(sigma=old_kernel_size)
-    output = Table(['transformation', 'mean_nss', 'mean_ig', 'median_nss', 'median_ig', 'std_nss', 'std_ig'])
-    for directory in directories:
-        new_centerbias = load_centerbias(directory, new_kernel_size)
-        old_centerbias = load_centerbias(directory, old_kernel_size)
-        data = { 'nss': [], 'ig': [] }
-        for image_number in range(1, 101):
-            fixations = load_fixations(directory, image_number)
-            data['nss'].append(NSS(new_centerbias, fixations) - NSS(old_centerbias, fixations))
-            data['ig'].append(IG(new_centerbias, old_centerbias, fixations))
-        output.add_row({
-            'transformation': get_transformation_name(directory),
-            'mean_nss': mean(data['nss']),
-            'mean_ig': mean(data['ig']),
-            'median_nss': median(data['nss']),
-            'median_ig': median(data['ig']),
-            'std_nss': std(data['nss']),
-            'std_ig': std(data['ig'])})
-    return output
-
-def centerbias_range_benchmark(maximum_kernel_size: int, csv_directory: str = 'centerbias_benchmarks'):
-    """
-    Run the `centerbias_benchmark` on a range of centerbias kernel sizes,
-    and return the highest performing kernel size.
-    """
-    if not Path(csv_directory).exists():
-        Path(csv_directory).mkdir(parents=True, exist_ok=True)
-    best_kernel_size = 1
-    for kernel_size in range(2, maximum_kernel_size + 1):
-        output = centerbias_comparison_benchmark(kernel_size, best_kernel_size)
-        output.to_csv(f'{csv_directory}/{kernel_size}_vs_{best_kernel_size}.csv')
-        performance_aggregate = mean(output.get_column('mean_nss')) + mean(output.get_column('mean_ig'))
-        if performance_aggregate > 0:
-            best_kernel_size = kernel_size
-
 def fixation_point_averages(models: list[str], include_centerbias: bool = True, include_real: bool = True, centerbias_size: int = 57, logging: bool = False) -> Table:
     """
     Run NSS and IG benchmarks for a set of provided model saliency maps, identified
@@ -158,59 +116,3 @@ def best_resolution_unisal(csv_path: str) -> None:
                 IG[row['model']]['std'].append(float(row['std_ig']))
     for model in NSS:
         print(model, mean(NSS[model]['mean']), mean(IG[model]['mean']), mean(NSS[model]['median']), mean(IG[model]['median']), mean(NSS[model]['std']), mean(IG[model]['std']))
-
-def quadratic_terms(
-    csv_files: list[str],
-    model_names: list[str],
-    stat_1: str,
-    stat_2: str,
-    z_score_threshold: float = 3.0,
-) -> None:
-    x_values = { model_name: {} for model_name in model_names }
-    y_values = { model_name: {} for model_name in model_names }
-    transformations = []
-    samples = 0
-    output = Table(['transformation', 'model', 'quadratic_term'])
-    for csv_file, model_name in zip(csv_files, model_names):
-        with open(csv_file, 'r') as file:
-            rows = DictReader(file)
-            for row in rows:
-                if row['transformation'] not in transformations:
-                    transformations.append(row['transformation'])
-                if row['transformation'] not in x_values[model_name]:
-                    x_values[model_name][row['transformation']] = []
-                    y_values[model_name][row['transformation']] = []
-                x_values[model_name][row['transformation']].append(float(row[stat_1]))
-                y_values[model_name][row['transformation']].append(float(row[stat_2]))
-                samples = max(samples, int(row['image_number']))
-    for index, transformation in enumerate(transformations):
-        for model_name in model_names:
-            x_zscores = zscore(x_values[model_name][transformation])
-            y_zscores = zscore(y_values[model_name][transformation])
-            x = []
-            y = []
-            for sample_index in range(samples):
-                if x_zscores[sample_index] < z_score_threshold and y_zscores[sample_index] < z_score_threshold:
-                    x.append(x_values[model_name][transformation][sample_index])
-                    y.append(y_values[model_name][transformation][sample_index])
-            quadratic_delta, _, _ = polyfit(x, y, 2)
-            output.add_row({
-                'transformation': transformation,
-                'model': model_name,
-                'quadratic_term': quadratic_delta})
-    return output
-
-def quadratic_term_averages(csv_files: list[str]) -> Table:
-    quadratic_terms = []
-    for csv_file in csv_files:
-        with open(csv_file, 'r') as file:
-            rows = DictReader(file)
-            for row in rows:
-                quadratic_terms.append(float(row['quadratic_term']))
-    print(f"mean: {mean(quadratic_terms)}")
-    positive = [term for term in quadratic_terms if term > 0]
-    print(f"positive mean: {mean(positive)}, positive count: {len(positive)}")
-    negative = [term for term in quadratic_terms if term < 0]
-    print(f"negative mean: {mean(negative)}, negative count: {len(negative)}")
-
-quadratic_term_averages(["../results/quadratic_terms_nss.csv", "../results/quadratic_terms_ig.csv"])

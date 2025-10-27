@@ -1,6 +1,23 @@
 // Preliminary counter
 #let preliminary = counter("preliminary")
 
+// From https://github.com/typst/typst/issues/2196
+#let content-to-string(item) = {
+  if type(item) == str {
+    item
+  } else if type(item) != content {
+    str(item)
+  } else if item.has("text") {
+    item.text
+  } else if item.has("children") {
+    item.children.map(content-to-string).join()
+  } else if item.has("body") {
+    content-to-string(item.body)
+  } else if item == [ ] {
+    " "
+  }
+}
+
 // Initial styling
 #set page(
   header: context {
@@ -30,31 +47,36 @@
   header-ascent: 40%,
   number-align: right,
   margin: (
-    x: 1.5in,
+    x: 1.25in,
     y: 1in,
   ),
   numbering: "i",
   footer: "",
 )
 
+#let font_size = 12pt
+#let double_spaced = 20pt
+#let single_spaced = 6pt
+
 #set text(
-  size: 12pt,
+  size: font_size,
   font: "Times New Roman",
 )
 
 #set par(
-  spacing: 24pt,
-  leading: 24pt,
+  spacing: double_spaced,
+  leading: double_spaced
 )
 
 // Metadata
 #let author = "James Youngblood"
 #let year = "2025"
-#let month = "August"
+#let month = "December"
 #let degree = "Master of Science"
+#let program = "Computing"
 #let department = "School of Computing"
-#let title = "DIGITAL IMAGE TRANSFORMATIONS DEGRADE GAZE PREDICTION ACCURACY"
-#let abstract = [  
+#let title = "DIGITAL IMAGE TRANSFORMATIONS DEGRADE\nGAZE PREDICTION ACCURACY"
+#let abstract = [
   Using saccadic fixation points collected on images and digital transformations of those images, we show that common transformations--including cropping, rotation, contrast adjustment, and noise--degrade prediction accuracy for state-of-the-art gaze fixation prediction models. We fail to find any heuristics which indicate the degradation of prediction accuracy for arbitrary image transformations. Our work emphasizes the need for more varied training data for gaze prediction models.
 ]
 #let committee_chair = "Rogelio Cardona-Rivera"
@@ -65,31 +87,42 @@
 
 #show heading: item => [
   #set align(center)
-  #set text(14pt, weight: "regular")
+  #set text(size: font_size, weight: "regular")
   #set par(leading: 1em)
   #pagebreak(weak: true)
   #v(1in)
   #item
-  #v(1em)
+  #v(40pt)
 ]
 
-#show figure.caption: none
-#show <figure-caption>: set par(leading: 12pt, first-line-indent: 0pt)
+#show figure: set block(width: auto)
+
+#show figure.caption: item => [
+  #set par(leading: single_spaced)
+  #set align(left)
+  #set text(size: font_size)
+  #item
+  #v(40pt)
+]
 
 // Title page
 #counter(page).update(0)
 #align(center)[
-  #text([#title], size: 14pt) <no-header>
-  #v(1fr)
+  #text([#title]) <no-header>
+  #v(64pt)
   by \
   #author
-  #v(1fr)
+  #v(64pt)
+  #set par(leading: single_spaced)
   A thesis submitted to the faculty of \
   The University of Utah \
   in partial fulfillment of the requirements for the degree of
-  #v(1fr)
-  #degree
-  #v(1fr)
+  #set par(leading: double_spaced)
+  #v(64pt)
+  #degree \
+  in \
+  #program
+  #v(64pt)
   #department \
   The University of Utah \
   #month #year
@@ -100,7 +133,7 @@
 #align(center)[
   #v(1fr)
   Copyright © <no-header> #author #year. \
-  Distributed under a Creative Commons Attribution-ShareAlike 4.0 International license.
+  All Rights Reserved
   #v(1fr)
 ]
 #pagebreak()
@@ -112,25 +145,25 @@
   STATEMENT OF THESIS APPROVAL
   #v(3em)
 ]
-The thesis of #emph([#author]) has been approved by the following supervisory committee members:
+The thesis of #author has been approved by the following supervisory committee members:
 #v(1em)
 #grid(
-  columns: (auto, auto, 1fr),
+  columns: (1fr, auto, 80pt),
+  row-gutter: double_spaced,
   gutter: 1em,
-  [#emph([#committee_chair]),],
-  [Chair,],
-  [_(Date Approved)_],
-  [#emph([#committee_second]),],
+  [#committee_chair,],
+  [Chair],
+  [10/21/2025],
+  [#committee_second,],
   [Member,],
-  [_(Date Approved)_],
-  [#emph([#committee_third]),],
+  [10/21/2025],
+  [#committee_third,],
   [Member,],
-  [_(Date Approved)_],
+  [10/21/2025],
 )
 #v(1em)
-by #emph([#department_chair]), the Chair of the #department, \
-and by #emph([#graduate_dean]), the Dean of the Graduate School.
-#v(1fr)
+by #department_chair, the Chair of the #department, \
+and by #graduate_dean, the Dean of the Graduate School.
 #pagebreak()
 
 // Abstract page
@@ -140,7 +173,7 @@ and by #emph([#graduate_dean]), the Dean of the Graduate School.
 
 // Table of Contents
 #outline(
-  title: [CONTENTS #v(2em)],
+  title: [CONTENTS],
   indent: auto,
   depth: 2,
 )
@@ -148,13 +181,26 @@ and by #emph([#graduate_dean]), the Dean of the Graduate School.
 
 // List of Figures
 = LIST OF FIGURES
-#set par(leading: 12pt)
-#show outline.entry: set block(below: 24pt)
+#set par(leading: single_spaced)
+#show outline.entry: item => link(
+  item.element.location(),
+  [
+    #counter("figure_counter").step()
+    #context {
+      counter("figure_counter").display()
+    }
+    #h(4pt)
+    #content-to-string(item.body()).split(". ").first().
+    #box(width: 1fr, item.fill)
+    #item.page()
+    #v(0pt)
+  ]
+)
 #outline(
   title: none,
   target: figure.where(kind: image),
 )
-#set par(spacing: 24pt, leading: 24pt)
+#set par(spacing: double_spaced, leading: double_spaced)
 #pagebreak()
 
 // Setup for main content
@@ -195,7 +241,7 @@ When collecting gaze distribution data from human subjects, we receive a collect
 
 At this point, our saliency map would be "speckled", with scattered points of high intensity and all other locations being low intensity. This saliency map likely diverges from the real gaze distribution because of the limited sample size of fixation points. When testing greater fixation point sample sizes, we see that on the limit of infinite sample size, the saliency map would converge to a smooth probability distribution rather than a discrete point cloud.
 
-Thus, if we wish to obtain a better estimate of the real gaze distribution, we should blur the saliency map with a Gaussian kernel to obtain a smoother probability distribution. This step is referred to as "regularization". Note that it is convention to set the size of the Gaussian kernel to a pixel value equivalent to one degree of visual angle in length from the human subject's perspective. See figure 1 for an illustrative example of both speckled and regularized saliency maps.
+Thus, if we wish to obtain a better estimate of the real gaze distribution, we should blur the saliency map with a Gaussian kernel to obtain a smoother probability distribution. This step is referred to as "regularization". Note that it is convention to set the size of the Gaussian kernel to a pixel value equivalent to one degree of visual angle in length from the human subject's perspective. See Figure 1 for an illustrative example of both speckled and regularized saliency maps.
 
 If we perform these regularization steps on collected fixations from human subjects for an image, the resulting regularized saliency map is our best proxy for the real gaze distribution. We will refer to this as a "real map" for brevity.
 
@@ -203,15 +249,17 @@ Gaze prediction models will compute a saliency map for an image using only the i
 
 We note that a paper by Matthias Kümmerer, Thomas S. A. Wallis, and Matthias Bethge @information-gain describes computation for a "gold standard" prediction that is conceptually similar to the real map we use. The gold standard is intended to be an expected upper bound for the prediction accuracy of gaze prediction models. Because prediction models do not receive fixation points of an image as input, the gold standard attempts to provide a fair comparison by summing all fixation points except those attached to the image of concern when computing the gold standard.
 
-For our study, we require that our real map reflects the loss of information content undergoes destructive transformations. When an image undergoes such a transformation, we expect fixations to be more chaotic, and the summation of those points will spread across a wider area. The real map metric scores fall as saliency values are become less concentrated on smaller areas which contain many fixation points. For the purposes of our study, the real map serves as a good upper reference point for comparison with gaze prediction model performance. We do not require the gold standard's strictness with regard to fair comparisons to potential model performance, and so we omit the computation of the gold standard in favor of the real map's simplicity.
+For our study, we require that our real map reflects the loss of information content undergoes destructive transformations. When an image undergoes such a transformation, we expect fixations to be more chaotic, and the summation of those points will spread across a wider area. The real map prediction accuracy falls as saliency is distributed over a broader area. This means that, for the purposes of our study, the real map serves as a good upper reference point for comparison with gaze prediction model performance. We do not require the gold standard's strictness with regard to fair comparisons to potential model performance, and so we omit the computation of the gold standard in favor of the real map's simplicity.
 
-With the real map as an upper reference point for prediction accuracy, we seek a lower reference point. With both upper and lower reference points, we may compare gaze prediction model performance in terms of its relative position between the upper and lower reference points.
+With the real map as an upper reference point for prediction accuracy, we seek a lower reference point. With both upper and lower reference points, we may normalize all prediction accuracy scores between the range of the scores of the reference points, allowing us to make a fair comparison between the performance of different transformations.
 
 An ideal lower reference point should account for biases in gaze behavior present in the dataset of images, but should not account for any individual image's contents. This will allow us to see what information the gaze prediction model can inference from an image directly, beyond any general assumptions the model might make based on previous experience with the dataset or class of images.
 
-For datasets exceeding a certain sample size, an adequate lower reference point can be computed by collecting all fixation points for the entire dataset of interest at once and regularizing similar to the real map. The process will produce an average of all fixations across all images in the dataset. In gaze prediction research, this is usually referred to as the "center bias", due to the prevalent tendency of most human subjects (and therefore datasets of human gaze behavior) to fixate towards the center of an image. The center bias will account for dataset-wide biases, and as the number of images in the dataset increases, the weight of any individual image's fixations will trend towards zero. This fulfills our requirements for a lower reference point. As an example from our dataset, the center bias is shown in figure 2.
+For datasets exceeding a certain sample size, an adequate lower reference point can be computed by collecting all fixation points for the entire dataset of interest at once and regularizing similar to the real map. The process will produce an average of all fixations across all images in the dataset. In gaze prediction research, this is usually referred to as the "center bias", due to the prevalent tendency of most human subjects (and therefore datasets of human gaze behavior) to fixate towards the center of an image. The center bias will account for dataset-wide biases, and as the number of images in the dataset increases, the weight of any individual image's fixations will trend towards zero. This fulfills our requirements for a lower reference point. As an example from our dataset, the center bias is shown in Figure 2.
 
-Using the collected fixation points, real maps, center biases, and metrics for comparison compiled by Zoya Bylinskii, Tilke Judd, Aude Olivia, Antonio Torralba and Frédo Durand @saliency-metrics, we can measure the accuracy of a model's predictions. Each metric is either "location-based" or "distribution-based", as Bylinskii et al. distinguish them, meaning they either compute a score between a saliency map and fixation points, or between two saliency maps, respectively. We evaluate the qualities and usefulness of each metric for our study in the "Method" section. Using these metrics, we can conclude a decrease in accuracy of a model's predictions when the fraction of the metric score a model achieves, relative to the range between the scores of the real map and the center bias, falls.
+Using metrics for comparison compiled by Zoya Bylinskii, Tilke Judd, Aude Olivia, Antonio Torralba and Frédo Durand @saliency-metrics, we can measure the accuracy of a model's predictions. Each metric is categorized as either "location-based" or "distribution-based", meaning they either compute a score between a saliency map and fixation points, or between two saliency maps, respectively. We evaluate the qualities and usefulness of each metric for our study in the "Method" section.
+
+Using these metrics, along with the real map and center bias, we can conclude a decrease in accuracy of a model's predictions when the normalized score (between the range of the real map and center bias) of the prediction falls.
 
 The most widely adopted benchmark for gaze prediction model performance is the MIT/Tuebingen Saliency Benchmark @mit-tuebingen @made-easy @mit300, which lists many of the metrics described by Bylinskii et al. @saliency-metrics to compare the performance of submitted models. We select two high-scoring models as state-of-the-art from this Benchmark. The first is the current top contender on the benchmark, DeepGaze IIE, from Akis Linardos, Matthias Kümmerer, Ori Press, and Matthias Bethge @deepgazeiie. The second is a runner-up, UNISAL, from Richard Droste, Jianbo Jiao, and J. Alison Noble @unisal. UNISAL has a smaller memory footprint and faster inference speed than DeepGaze IIE.
 
@@ -229,32 +277,28 @@ We find this leave-one-out policy to have marginal impact on our dataset as well
     image("fixation_map_example.png", width: 150pt),
     image("real_map_example.png", width: 150pt),
   ),
-  caption: [An illustrative example of a 'speckled' saliency map and its regularization.],
+  caption: [
+    An illustrative example of a 'speckled' saliency map and its regularization. To the left is the speckled saliency map with 15 randomly placed fixation points, and a regularized saliency map produced by smoothing using a gaussian blur to the right.
+  ],
 )
-
-#[Figure 1. An illustrative example of a 'speckled' saliency map and its regularization. To the left is the speckled saliency map with 15 randomly placed fixation points, and a regularized saliency map produced by smoothing using a gaussian blur to the right.]<figure-caption>
-
-#v(24pt)
 
 #figure(
   image("reference_centerbias.png", width: 200pt),
-  caption: "The center bias for the untransformed set of images in our dataset.",
+  caption: [
+    The center bias for the untransformed set of images in our dataset. It is computed by summing all fixation points for the untransformed set of images and blurring for regularization.
+  ],
 )
 
-#[Figure 2. The center bias for the untransformed set of images in our dataset. It is computed by summing all fixation points for the untransformed set of images and blurring for regularization.]<figure-caption>
-
 = METHOD
-We aim to measure the accuracy of gaze prediction models on both untransformed images and their transformed counterparts, and analyze the differences in accuracy between the two.
+We aim to measure the accuracy of gaze prediction models on both untransformed images and their transformed counterparts. We hypothesize that transformed counterparts will achieve lower accuracy scores than untransformed counterparts.
 
-We use the dataset provided by Che et al. @gaze-transformations, which includes 100 randomly selected images from the CAT2000 dataset @cat2000, with 18 different transformations applied to each image. This produces a total of 1900 images, including the untransformed images. Gaze fixation points are recorded for each image. See figures 3 and 4 for examples of all transformations.
+We use the dataset provided by Che et al. @gaze-transformations, which includes 100 randomly selected images from the CAT2000 dataset @cat2000, with 18 different transformations applied to each image. This produces a total of 1900 images, including the untransformed images. Gaze fixation points are recorded for each image. See Figures 3 and 4 for examples of all transformations.
 
-There will be two steps to our study. First, we wish to compare the prediction accuracy of the models between the untransformed and transformed images. We hypothesize that the model's performance will be degraded as images are transformed.
+Some transformations are similar to others in all but intensity, i.e. the `ContrastChange_1` and `ContrastChange_2` transformations. We do not have absolute measures for the difference in intensity between two transformations, only ranks of intensity. We will plot the prediction accuracy of similar groups of transformations in ascending order of intensity to reveal any potential trends.
 
-Some transformations are similar to others in all but intensity, i.e. the `ContrastChange_1` and `ContrastChange_2` transformations. We do not have absolute measures for the difference in intensity between two transformations, only ranks of intensity. We will still plot the prediction accuracy of similar groups of transformations in ascending order such that we can reveal trends in the effect that a transformation will have as intensity increases.
+As a second step of our study, we search for a heuristic for expected degradation for a transformation that does not require human subject data. We will collect a set of relevant metrics that only require a reference dataset of human subject data, for which arbitrary transformations can be applied. We compute the metrics' correlation to the prediction accuracy of the models on the transformed images.
 
-Second, we wish to find a heuristic for expected prediction accuracy loss for a transformation, without requiring human subject data. We will collect a set of relevant metrics images we can derive from a source gaze distribution dataset and transformations upon that dataset, and compute their correlation to the prediction accuracy of the models on the transformed images. This leads us to examine the metrics compiled by Bylinskii et al. @saliency-metrics for both the first and the second step.
-
-We will need both of what Bylinskii et al. @saliency-metrics call "location-based" and "distribution-based" metrics. Location-based metrics compare a saliency map to a set of fixation points, and distribution-based metrics compare two saliency maps. We will select location-based metrics for the first step of our study, where we must evaluate the performance of models given a set of fixation points, because location-based metrics require fewer parameters to configure. For the second step of our study, the comparison between the saliency maps produced for both untransformed and transformed images may be a valuable heuristic, and so we will select distribution-based metrics as well.
+Both the first step and second step of our study need metrics of model prediction accuracy, which leads us to examine the metrics compiled by Bylinskii et al. @saliency-metrics. We will select location-based metrics for the first step of our study, where we must evaluate the performance of models given a set of fixation points, because location-based metrics require fewer configuration parameters than distribution-based metrics. For the second step of our study, the comparison between the saliency maps produced for both untransformed and transformed images may be a valuable heuristic, and so we will select distribution-based metrics as well.
 
 Listing the metrics, along with their abbreviations, we have area-under-the-curve (AUC) @aucjudd, shuffled area-under-the-curve (sAUC) @sauc, normalized scanpath saliency (NSS) @nss, information gain (IG) @information-gain, and Earth Mover's Distance (EMD) @emd. We also have image-based versions of histogram similarity (SIM), Pearson correlation coefficients (CC), and Kullback-Leibler divergence (KL).
 
@@ -268,7 +312,7 @@ We decide against the SIM metric because it does not penalize false positives an
 
 We decide against the EMD metric because it is computationally expensive, and because it is also highly rank-correlated to the NSS and CC metrics.
 
-We select the remaining metrics: NSS, CC, IG, and KL. NSS and IG are location-based, while CC and KL are distribution-based. NSS and CC have been likened as the discrete and continuous analogs of each other, respectively, as a similarity metric. Meanwhile, the IG and KL metrics utilize similar information-theoretic foundations. IG is favored, because it provides a comparative measure against a baseline (the center bias), but it also has the limitation that it does not provide a meaningful measure for the center bias itself.
+We select the remaining metrics: NSS, CC, IG, and KL. NSS and IG are location-based, while CC and KL are distribution-based. NSS and CC have been likened as the discrete and continuous analogs of each other, respectively, as a similarity metric. Meanwhile, the IG and KL metrics utilize similar information-theoretic foundations. IG is favored, because it provides a comparative measure against the center bias as a baseline. This baseline characteristic of IG means that we must use other metrics to compare center biases.
 
 Additionally, we will use the structural similarity index (SSIM) @ssim metric to compare the difference between images before and after a transformation. We hypothesize that a measure of difference before and after a transformation may also be a valuable heuristic for expected prediction accuracy loss.
 
@@ -286,7 +330,7 @@ Considering the average metric performance across all transformations, and addit
 
 We decide that these situational differences between several UNISAL resolutions, which are at maximum an approximate 0.02 points in NSS score, do not outweigh the overall performance lead of 0.02 points for the 384 by 224 resolution of UNISAL. From this point forwards, we will only study the 384 by 224 resolution for UNISAL and the 1024 by 576 resolution for DeepGaze IIE.
 
-We will compute our location-based metrics (NSS and IG) for each transformation set as the first step of our study. We will compare the scores for each transformation to the scores for the untransformed set of images, as well as similar transformations in escalating intensity. For all transformations, we will compute the fraction of the score of the image's real map that a model can achieve relative to the center bias as a baseline fraction of zero. Using these fractions, we can compare the loss in percentage points for their accuracy scores as transformations increase in intensity.
+We will compute our location-based metrics (NSS and IG) for each transformation set as the first step of our study. We will compare the scores for each transformation to the scores for the untransformed set of images, as well as similar transformations in escalating intensity. For all scores, we will normalize between the range of the real map and the center bias, allowing for comparisons between transformations.
 
 Next, we will utilize SSIM, CC, KL, NSS, and IG metrics for the second step of our study. We wish to find correlations between some independent metrics and those metrics which measure the model's prediction accuracy on the transformed images.
 
@@ -312,106 +356,84 @@ We publish the code for our experiment at our repository on Codeberg @our-code.
     image("cropping_2_example.png", width: 380pt),
     gutter: 3pt,
   ),
-  caption: [Demonstrations of `Cropping_1` and `Cropping_2` transformations.]
+  caption: [
+    Demonstrations of `Cropping_1` and `Cropping_2` transformations. The images, listed from top to bottom, are the untransformed image, the `Cropping_1` transformation, and the `Cropping_2` transformation.
+  ]
 )
-
-#[Figure 3. Demonstrations of `Cropping_1` and `Cropping_2` transformations. The images, listed from top to bottom, are the untransformed image, the `Cropping_1` transformation, and the `Cropping_2` transformation.]<figure-caption>
-
-#pagebreak()
 
 #figure(
   image("transformation_examples.png", width: 290pt),
-  caption: [Demonstrations of all transformations except `Cropping_1` and `Cropping_2`.]
+  caption: [Demonstrations of all transformations except `Cropping_1` and `Cropping_2`. (`Cropping_1` and `Cropping_2` are shown in Figure 3.) A slice of one of the images in the dataset is shown, where both the untransformed slice and all transformations of the slice are displayed, with transformation names listed above each slice.]
 )
-
-#[Figure 4. Demonstrations of all transformations except `Cropping_1` and `Cropping_2`. (`Cropping_1` and `Cropping_2` are shown in figure 3.) A slice of one of the images in the dataset is shown, where both the untransformed slice and all transformations of the slice are displayed, with transformation names listed above each slice.]<figure-caption>
 
 = RESULTS
 For the untransformed image set, we find that both DeepGaze IIE @deepgazeiie and UNISAL @unisal perform similarly to the expectation set by the MIT/Tuebingen Saliency Benchmark for the CAT2000 dataset when considering the IG metric. For DeepGaze IIE, the Benchmark lists a score of 0.1893, while our inference achieves a score of approximately 0.1665. This results in an error of about 12% of the expected value, or an error around 3% of the range between the gold standard and the center bias (0.8026). For UNISAL, the Benchmark lists a score of 0.0321, while our inference achieves a score of approximately 0.0381. This results in an error of about 18% of the expected value, but the error is less than 1% of the range between the gold standard and the center bias.
 
 For the NSS metric, both DeepGaze IIE and UNISAL outperform the expectation set by the MIT/Tuebingen Saliency Benchmark considerably. For DeepGaze IIE, the Benchmark lists a score of 2.1122, while our inference achieves a score of approximately 2.4429. This results in an error of about 16% of the expected value, or about 50% of the range between the gold standard and the center bias (0.6559). For UNISAL, the Benchmark lists a score of 1.9359, while our inference achieves a score of approximately 2.1563. This results in an error of about 11% of the expected value, or about 33% of the range between the gold standard and the center bias.
 
-The increase in NSS scores cannot be attributed to differences in normalization between our method and the Benchmark's reports. The NSS computation has a normalization scheme built into its definition, using the mean and standard deviation of pixel intensities in the saliency map. We have double-checked that our method follows the definition as described in the paper by Bylinskii et al. @saliency-metrics. Whether it be chance due to the random selection and human trials involved in collecting the dataset of Che et al. @gaze-transformations, or an elusive error or effect in our methodology, the reason for this unexpected increase in prediction accuracy is unclear.
+The increase in NSS scores cannot be attributed to differences in normalization between our method and the Benchmark's reports. The NSS computation has a normalization scheme built into its definition, using the mean and standard deviation of pixel intensities in the saliency map. We have double-checked that our method follows the definition as described in the paper by Bylinskii et al. @saliency-metrics. Whether it be chance due to the collection process of the dataset of Che et al. @gaze-transformations, or an elusive error or effect in our methodology, the reason for this unexpected increase in prediction accuracy is unclear.
 
 We find that all transformations except for `Mirroring` cause both models' prediction accuracy to drop by 5 to 95 percentage points of the range between the real map and the center bias, depending on model and transformation type. This holds true for both the NSS and IG metrics. An increase in the intensity of the transformation leads to a loss in prediction accuracy. Figures 5 and 6 plot the degradation of each model's NSS and IG metrics respectively, along with comparisons to the real map and center bias, for each transformation.
 
-These results confirm our general hypothesis that digital transformations will degrade the model's prediction accuracy. However, for the specific case of the `Mirroring` transformation, the model's prediction accuracy is unaffected, and may even increase by a percentage point or two. The results tell us that it is likely that models will require additional training in order to mitigate performance degradation on transformed images (excluding `Mirroring`) for the CAT2000 dataset and other gaze prediction datasets.
+These results confirm our general hypothesis that digital transformations will degrade the model's prediction accuracy. However, for the specific case of the `Mirroring` transformation, the model's prediction accuracy is mostly unaffected. The results tell us that it is likely that models will require additional training on data collected for transformed images (excluding `Mirroring`) in order to mitigate performance degradation.
 
-Next, we hope to find heuristics that will allow us to quickly explore for transformations which will require additional training. For the second step of our study, we find only a few strong correlations. For most transformations there exists a strong correlation (above 0.5 for both DeepGaze IIE and UNISAL, as per our "Method" section) between untransformed and transformed NSS scores. This holds true for all transformations except the `ContrastChange_1`, `ContrastChange_2` `Rotation_2`, and `Shearing_3` transformations. We notice that UNISAL performs especially poorly on the contrast change transformations, even though DeepGaze IIE performs well. See figure 7 for a scatterplot of all images in the dataset on axes of untransformed and transformed NSS scores, and a correlation coefficient for each transformation and model.
+Next, we hope to find heuristics that will allow us to quickly explore for transformations which will require additional training. For the second step of our study, we find only a few strong correlations. For most transformations there exists a strong correlation (above 0.5 for both DeepGaze IIE and UNISAL, as per our "Method" section) between untransformed and transformed NSS scores. This holds true for all transformations except the `ContrastChange_1`, `ContrastChange_2` `Rotation_2`, and `Shearing_3` transformations. We notice that UNISAL performs especially poorly on the contrast change transformations, even though DeepGaze IIE performs well. See Figure 7 for a scatterplot of all images in the dataset on axes of untransformed and transformed NSS scores, and a correlation coefficient for each transformation and model.
 
-The relationships between untransformed and transformed IG scores displays similar but weaker patterns compared to the relationships with NSS scores. As with NSS, the IG metric fell below our threshold for a strong correlation for the `ContrastChange_1`, `ContrastChange_2`, `Rotation_2`, and `Shearing_3`. Additionally, it the IG metric fell below the threshold for the `Boundary`, `MotionBlur_1`, `MotionBlur_2`, `Rotation_1`, and `Shearing_2`. See figure 8 for a similar plot to figure 7 but with IG instead of NSS scores.
+The relationships between untransformed and transformed IG scores displays similar but weaker patterns compared to the relationships with NSS scores. As with NSS, the IG metric fell below our threshold for a strong correlation for the `ContrastChange_1`, `ContrastChange_2`, `Rotation_2`, and `Shearing_3`. Additionally, it the IG metric fell below the threshold for the `Boundary`, `MotionBlur_1`, `MotionBlur_2`, `Rotation_1`, and `Shearing_2`. See Figure 8 for a similar plot to Figure 7 but with IG instead of NSS scores.
 
-For all transformations which degraded by 30% or greater for the IG metric for the first step of our study (for both models), there exists intensities of the same transformation which fail our threshold for strong correlation (for NSS or IG). Additionally, the `Boundary` transformation displays a weak correlation, though it does not degrade by 30% or more in the first step. We find no other patterns between the data gathered in the first and second steps of our study.
+For all transformations which degraded by 30% or greater for the IG metric for the first step of our study (for both models), the strongest intensities of the same transformation fail our threshold for strong correlation (for NSS or IG). Additionally, the `Boundary` transformation displays a weak correlation, though it does not degrade by 30% or more in the first step. We find no other patterns between the data gathered in the first and second steps of our study.
 
-Figures 7 and 8 also plot lines and parabolas of best fit for the data. We find that 13 out of 72 plots, particularly the `Boundary`, `Cropping_1`, and `Cropping_2`, `Rotation_1`, `Rotation_2`, and `Shearing_3` transformations for the UNISAL model's IG metric, have positive coefficients for the quadratic term averaging approximately 0.0557. All other parabolas have a negative value for the quadratic term averaging approximately -0.0693. Across all plots, the average value for the quadratic term is -0.0467. For both metrics, we see more negative quadratic terms for those transformations which have weaker correlation coefficients.
+From the above data, we conclude that an increase in prediction accuracy for untransformed images correlates with an increase in prediction accuracy for almost all transformations. This tells us that, even in the absence of a more effective strategy, investing greater amounts of data and compute into existing training techniques will improve performance for both untransformed and transformed images.
 
-From the above data, we find that for most transformations tested, an increase in prediction accuracy on the untransformed image correlates with an increase in prediction accuracy on the transformed image. We find that for most transformations, the relationship appears to be nonlinear to some extent due to non-zero quadratic terms. The negative quadratic term for most transformations indicates that an increase in accuracy for untransformed images seems to outpace that of transformed images. A curve of diminishing returns emerges, with greater steepness for those transformations which have weak correlation coefficients.
+For transformations with weaker correlation coefficients, the relationship seems to be nonlinear to some extent. We infer that the first step's performance degradation indicates a drop-off in accuracy increase for those transformations with weak correlations. For such transformations, untransformed accuracy improvements greatly outpace those seen in transformed accuracy. These transformations indicate the need for a targeted training plan that addresses the performance degradation seen in the transformation. 
 
-Besides the correlations mentioned above, only one other correlation passes our threshold for both DeepGaze IIE and UNISAL. This would be the correlation between the CC metric between the predictions for the untransformed and transformed images and the NSS metric for the transformed image. In figure 9, we plot each image on these two axes, as well as a line of best fit.
+Besides the correlations mentioned above, only one other correlation passes our threshold for both DeepGaze IIE and UNISAL: that between the CC metric across the predictions for the untransformed and transformed images, and the NSS metric for the transformed image. See Figure 9.
 
-This final correlation seems to indicate that, for the contrast change metrics specifically, the greater the similarity of the prediction for the transformed image and that for the untransformed image, the more accurate the prediction for the transformed image is. We might hypothesize this effect is due to image features not changing location, nor changing in relative emphasis or contrast, after a contrast change transformation. This means the real gaze distribution should remain unaffected, and so should the prediction.
+This final correlation seems to indicate that, for the contrast change metrics specifically, the greater the similarity of the prediction for the transformed image and that for the untransformed image, the more accurate the prediction for the transformed image is. We might hypothesize this effect is due to image features not changing location, nor changing in relative emphasis or contrast, after a contrast change transformation. This means the real gaze distribution should remain unaffected, and so should the prediction. However, there are transformations which we might also intuitively believe to exhibit little change in real gaze distribution, such as noise and compression, which do not exhibit similar correlations.
 
-Transformations which do not effect gaze distributions are called "label-preserving" by Che et al. @gaze-transformations. This is because machine learning domains would call the associated gaze distributions the "labels" of our image data. Further experiments may be warranted to study label-preserving transformations as a class of transformations which may have unique characteristics which allow unique heuristics, such as the CC metric.
+Transformations which do not effect gaze distributions are called "label-preserving" by Che et al. @gaze-transformations. This is because machine learning domains would call the associated gaze distributions the "labels" of our image data. We invite future work to study label-preserving transformations as a class of transformations which may have unique characteristics which allow unique heuristics, such as the CC metric.
 
-We saved all metrics and data gathered in our study in the `results` directory of our repository on Codeberg @our-code. The code used to compute them and produce visualizations is also available in the same repository.
-
-#pagebreak()
-
-#figure(
-  image("performance_degradation_nss.png", width: 380pt),
-  caption: [Plotting the degradation of NSS metrics for each transformation.]
-)
-
-#[Figure 5. Plotting the degradation of NSS metrics for each transformation. Each group of transformations which are similar are ordered by increasing intensity, and prepended with the untransformed set. For each group, we plot the NSS metric for each model: red for UNISAL, blue for DeepGaze IIE, green for the center bias, and yellow for the real map. The shaded region denotes the range between the real map and the center bias. For each model, we compute the fraction of the score of the real map that a model achieves with the center bias as a zero baseline. We list the loss of that fraction incurred, from the untransformed to the transformation with the greatest intensity, in percentage points below each plot.] <figure-caption>
+We save all metrics and data gathered in our study in the `results` directory of our repository on Codeberg @our-code. The code used to compute them and produce visualizations is also available in the same repository.
 
 #pagebreak()
 
 #figure(
-  image("performance_degradation_ig.png", width: 380pt),
-  caption: [Plotting the degradation of IG metrics for each transformation.]
+  image("degradation_nss.png", width: 380pt),
+  caption: [Plotting the degradation of NSS metrics for each transformation. Each group of transformations are ordered by increasing intensity, and prepended with the untransformed set. For each group and each model, we plot the NSS score normalized between the range of the real map and the center bias NSS scores. We color the UNISAL plot light red and the DeepGaze IIE plot dark blue. We list the change in value from untransformed to most intense transformation for each model at the top of each plot.]
 )
 
-#[Figure 6. Plotting the degradation of IG metrics for each transformation. As with figure 5, each group of transformations which are similar are ordered by increasing intensity, and prepended with the untransformed set. For each group, we plot the IG metric for each model: red for UNISAL, blue for DeepGaze IIE, green for the center bias, and yellow for the real map. The shaded region denotes the range between the real map and the center bias. For each model, we compute the fraction of the score of the real map that a model achieves with the center bias as a zero baseline. We list the loss of that fraction incurred, from the untransformed to the transformation with the greatest intensity, in percentage points below each plot.] <figure-caption>
-
-#pagebreak()
+#figure(
+  image("degradation_ig.png", width: 380pt),
+  caption: [Plotting the degradation of IG metrics for each transformation. As with Figure 5, each group of transformations are ordered by increasing intensity, and prepended with the untransformed set. For each group and each model, we plot the IG score normalized between the range of the real map and the center bias IG scores. We color the UNISAL plot light red and the DeepGaze IIE plot dark blue. We list the change in value from untransformed to most intense transformation for each model at the top of each plot.]
+)
 
 #figure(
   image("correlation_nss.png", width: 380pt),
-  caption: [NSS metrics between untransformed and transformed images.]
+  caption: [NSS correlation between untransformed and transformed images. For both models, we plot a point for each image, where its horizontal and vertical position are determined by the untransformed and transformed NSS scores, respectively. We plot UNISAL with light red and DeepGaze IIE with dark blue. We then plot a line of best fit for both sets of points.]
 )
-
-#[Figure 7. NSS correlation between untransformed and transformed images. For both DeepGaze IIE and UNISAL, we plot a point for each image, where its horizontal position is determined by the untransformed NSS metric and its vertical position is determined by the transformed NSS metric. Red denotes UNISAL, while blue denotes DeepGaze IIE. We then plot lines and parabolas of best fit for the points, as well as correlation coefficients listed below each plot.] <figure-caption>
-
-#pagebreak()
 
 #figure(
   image("correlation_ig.png", width: 380pt),
-  caption: [IG metrics between untransformed and transformed images.]
+  caption: [IG correlation between untransformed and transformed images. As with figure 7, we plot a point for each image for both models, where its horizontal and vertical position are determined by the untransformed and transformed NSS scores, respectively. We plot UNISAL with light red and DeepGaze IIE with dark blue. We then plot a line of best fit for both sets of points.]
 )
-
-#[Figure 8. IG correlation between untransformed and transformed images. As with figure 7, we plot a point for each image, where its horizontal position is determined by the untransformed IG metric and its vertical position is determined by the transformed IG metric. We do this for both UNISAL (denoted with red) and DeepGaze IIE (denoted with blue). We then plot lines and parabolas of best fit for the points, as well as correlation coefficients listed below each plot.] <figure-caption>
-
-#pagebreak()
 
 #figure(
   image("correlation_cc.png", width: 260pt),
-  caption: [CC metric between untransformed and transformed saliency maps, related to NSS metric for transformed images.]
+  caption: [CC metric between untransformed and transformed saliency maps, related to NSS metric for transformed images. As with figures 7 and 8, we plot a point for each image for both models, where its horizontal position is determined by the CC score between untransformed and transformed prediction saliency maps. The vertical position is determined by the transformed NSS score. We plot UNISAL with light red and DeepGaze IIE with dark blue. We then plot a line of best fit for both sets of points.]
 )
-
-#[Figure 9. CC metric between untransformed and transformed saliency maps, related to NSS metric for transformed images. As with figures 7 and 8, we plot a point for each image. Its horizontal position is determined by the CC metric computed between the saliency maps predicted for the untransformed and transformed images, and its vertical position is determined by the NSS metric for the transformed image. We do this for both UNISAL (denoted with red) and DeepGaze IIE (denoted with blue). We then plot lines of best fit, as well as correlation coefficients listed below each plot.] <figure-caption>
 
 = CONCLUSION
 For all transformations except `Mirroring`, both DeepGaze IIE and UNISAL models perform worse than the untransformed set of images. Increasing the intensity of the transformation leads to further loss in prediction accuracy. Losses in prediction accuracy are measured relative to the real map and center bias, and so these losses are not attributable to loss of image information content due to the transformation.
 
-Even so, there is usually a correlation between prediction accuracy on an untransformed image and prediction accuracy on a transformed image. A minority of transformations display weak correlations, and for these transformations the models usually suffer higher loss in prediction accuracy. For transformations with weak correlations, the parabolas of best fit indicate a curve of diminishing returns, where improvements in prediction accuracy for transformed images do not keep up with those for untransformed images.
+Even so, there is usually a correlation between prediction accuracy on an untransformed image and prediction accuracy on a transformed image. A minority of transformations display weak correlations, and for these transformations the models usually suffer higher loss in prediction accuracy. We are assured that a greater amount of data and compute applied to existing training techniques will improve performance across the board for both untransformed and transformed images. Even so, we anticipate that some transformations may require a more targeted training plan in order to mitigate relatively weak performance.
 
-We find that for the contrast change transformations only, the image-based correlation coefficient between the predictions for an untransformed image and its transformation is a weak heuristic for predicting the performance of a model on transformed images. In this unique case, one can infer some information about a model's performance on contrast-changed images without gathering human trial data. We might infer that transformations which display this behavior are label-preserving.
+We find that for the contrast change transformations only, the image-based correlation coefficient between the predictions for an untransformed image and its transformation is a heuristic for predicting the performance of a model on transformed images. In this unique case, one can infer some information about a model's performance on contrast-changed images without gathering human trial data. We refer to transformations which display this behavior as label-preserving.
 
-Our work concludes that current state-of-the-art gaze prediction models cannot be confidently applied to image classes outside of candid photography (as defined in the "Introduction" section). This raises concerns when applying gaze prediction models to images produced with most digital visual media production techniques. To the extent that CAT2000 @cat2000 and other gaze prediction datasets are representative of image classes outside of candid photography, we have shown that performance will degrade for those image classes when common digital image transformations are applied. Alternatively, if we assume that CAT2000 is not representative of images outside of candid photography, there is almost no data to show how well the models will perform for those image classes.
+Our work concludes that current state-of-the-art gaze prediction models cannot be confidently assumed to generalize to several image classes outside of those seen in their training data. Because many of the transformations we studied are commonly used in digital media production, we raise concerns when applying gaze prediction models to many classes of images in digital media.
 
-For future work, we would like to test a greater number of transformations, including distortions, color manipulations, stylistic filters, and compositions of all the above. We would also like to study the characteristics of potential label-preserving transformations in greater detail.
+To the extent that CAT2000 @cat2000 and other gaze prediction datasets are representative of image classes of interest to an arbitrary application, we have shown that performance will degrade for those image classes when common digital image transformations are applied. Alternatively, if we assume that CAT2000 is not representative of an area of interest, there is almost no data to show how well the models will perform for those image classes, and so confidence remains low.
 
-Finally, we would like to test transformations with more rigorous definitions of "intensity", at a granular level such that we can more accurately elucidate trends in performance as we increase the intensity of the transformation.
+For future work, we would like to test a greater number of transformations, including distortions, color manipulations, stylistic filters, and compositions of all the above. We would also like to study the characteristics of potential label-preserving transformations in greater detail. Finally, we would like to test transformations with more rigorous definitions of "intensity", at a granular level such that we can more accurately elucidate trends in performance as we increase the intensity of the transformation.
 
 #set par(spacing: 24pt, leading: 12pt)
 #bibliography("thesis.bib", title: "REFERENCES")
