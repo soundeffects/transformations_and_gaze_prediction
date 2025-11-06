@@ -52,6 +52,7 @@
   ),
   numbering: "i",
   footer: "",
+  paper: "us-letter"
 )
 
 #let font_size = 12pt
@@ -74,15 +75,15 @@
 #let month = "December"
 #let degree = "Master of Science"
 #let program = "Computing"
-#let department = "School of Computing"
+#let department = "Kahlert School of Computing"
 #let title = "DIGITAL IMAGE TRANSFORMATIONS DEGRADE\nGAZE PREDICTION ACCURACY"
 #let abstract = [
   Using saccadic fixation points collected on images and digital transformations of those images, we show that common transformations--including cropping, rotation, contrast adjustment, and noise--degrade prediction accuracy for state-of-the-art gaze fixation prediction models. We fail to find any heuristics which indicate the degradation of prediction accuracy for arbitrary image transformations. Our work emphasizes the need for more varied training data for gaze prediction models.
 ]
-#let committee_chair = "Rogelio Cardona-Rivera"
-#let committee_second = "Paul Rosen"
+#let committee_chair = "Rogelio E. Cardona-Rivera"
+#let committee_second = "Paul A. Rosen"
 #let committee_third = "Cem Yuksel"
-#let department_chair = "Mary Hall"
+#let department_chair = "Mary W. Hall"
 #let graduate_dean = "Darryl P. Butt"
 
 #show heading: item => [
@@ -109,20 +110,20 @@
 #counter(page).update(0)
 #align(center)[
   #text([#title]) <no-header>
-  #v(64pt)
+  #v(1fr)
   by \
   #author
-  #v(64pt)
+  #v(1fr)
   #set par(leading: single_spaced)
   A thesis submitted to the faculty of \
   The University of Utah \
   in partial fulfillment of the requirements for the degree of
   #set par(leading: double_spaced)
-  #v(64pt)
+  #v(1fr)
   #degree \
   in \
   #program
-  #v(64pt)
+  #v(1fr)
   #department \
   The University of Utah \
   #month #year
@@ -132,7 +133,7 @@
 // Copyright page
 #align(center)[
   #v(1fr)
-  Copyright © <no-header> #author #year. \
+  Copyright © <no-header> #author #year \
   All Rights Reserved
   #v(1fr)
 ]
@@ -153,13 +154,13 @@ The thesis of #author has been approved by the following supervisory committee m
   gutter: 1em,
   [#committee_chair,],
   [Chair],
-  [10/21/2025],
+  [11/3/2025],
   [#committee_second,],
   [Member,],
-  [10/21/2025],
+  [10/27/2025],
   [#committee_third,],
   [Member,],
-  [10/21/2025],
+  [10/30/2025],
 )
 #v(1em)
 by #department_chair, the Chair of the #department, \
@@ -206,7 +207,6 @@ and by #graduate_dean, the Dean of the Graduate School.
 // Setup for main content
 #set page(numbering: "1")
 #set par(first-line-indent: (amount: 2em, all: true))
-#set heading(numbering: "I.")
 #counter(page).update(1)
 #counter("preliminary").update(1)
 
@@ -219,9 +219,9 @@ Gaze prediction models are notably biased towards a class of images we will refe
 
 The object recognition task deprioritizes visual effects or style, because those do not meaningfully alter outcomes when completing the task, and so prioritizes candid photography. This prioritization does not hold true for our application in gaze prediction, in which we may encounter stylized, illustrated, or computer-generated images and post-processing for aesthetic purposes. The assumption of candid photography, implied by most of the training data a gaze prediction model will see, is a concern for the model's performance when generalizing for stylized images.
 
-A study by Zhaohui Che, Ali Borji, Guangtao Zhai, Xiongkuo Min, Guodong Guo and Patrick Le Callet @gaze-transformations shows that many digital image transformations influence gaze behavior in nontrivial ways. Visual media produced for aesthetic purposes utilize similar transformations to the ones studied by Che et al. for postprocessing. The study supports the concern that deep-learning gaze prediction models may not generalize well to visual media applications.
+A study by Zhaohui Che, Ali Borji, Guangtao Zhai, Xiongkuo Min, Guodong Guo, and Patrick Le Callet @gaze-transformations shows that many digital image transformations influence gaze behavior in nontrivial ways. Visual media produced for aesthetic purposes utilize similar transformations to the ones studied by Che et al. for postprocessing. The study supports the concern that deep-learning gaze prediction models may not generalize well to visual media applications.
 
-Using the data the Che et al. collected from human subjects in a new study, our work measures the performance of state-of-the-art gaze prediction models on images which have been transformed with common digital image transformations. We find that the prediction accuracy degrades significantly for almost all transformations, compared to accuracy on untransformed images, which strongly indicates that state-of-the-art, deep learning models are biased towards candid photography.
+Using the data Che et al. collected from human subjects in a new study, our work measures the performance of state-of-the-art gaze prediction models on images which have been transformed with common digital image transformations. We find that the prediction accuracy degrades significantly for almost all transformations, compared to accuracy on untransformed images, which strongly indicates that state-of-the-art, deep learning models are biased towards candid photography.
 
 Improving the performance of gaze prediction models for transformations will require more training data, but the space of possible transformations is vast. In order to prioritize training and data gathering efforts, a computational heuristic that indicates a loss in performance after a transformation--without the need for human subjects--would be very valuable for exploring the space of possible transformations. Searching for such a heuristic, we correlate derived metrics gathered from the images against the performance of the model on the transformed images. Unfortunately, we find that there are only a few weak relationships--none that are a strong and general indicator for a loss in performance after a transformation.
 
@@ -235,13 +235,13 @@ The effect of adversarial digital image transformations have been tested for bot
 = BACKGROUND
 The foundations of the gaze prediction field we build upon are reviewed comprehensively by Kümmerer et al. @annurev-vision, for which we will provide a brief overview.
 
-The most popular method for representing gaze measurements and predictions for images is with a two-dimensional field spanning the image area. This is usually represented using a grayscale image called a "saliency map". In the process of studying an image, the human eye will occasionally jump to a new fixation point in what is called a "saccade". We define a saliency map such that the pixels with the highest intensity are those most likely to be the next fixation target after a saccade. It is worth noting that most gaze prediction research, including our work, assigns "free-viewing" conditions to test subjects, meaning they have not been instructed to search for an element of the image.
+The most popular method for representing gaze measurements and predictions for images is with a two-dimensional field spanning the image area. This is usually represented using a grayscale image called a "saliency map." In the process of studying an image, the human eye will occasionally jump to a new fixation point in what is called a "saccade." We define a saliency map such that the pixels with the highest intensity are those most likely to be the next fixation target after a saccade. It is worth noting that most gaze prediction research, including our work, assigns "free-viewing" conditions to test subjects, meaning they have not been instructed to search for an element of the image.
 
 When collecting gaze distribution data from human subjects, we receive a collection of saccadic fixation points from an eye tracker over the area of the image presented to the subject. Converting these points into a saliency map can be done by brightening the pixels each point falls on. We can further define our saliency map by normalizing it to a probability distribution, such that each pixel has a probability of being the next fixation point.
 
-At this point, our saliency map would be "speckled", with scattered points of high intensity and all other locations being low intensity. This saliency map likely diverges from the real gaze distribution because of the limited sample size of fixation points. When testing greater fixation point sample sizes, we see that on the limit of infinite sample size, the saliency map would converge to a smooth probability distribution rather than a discrete point cloud.
+At this point, our saliency map would be "speckled," with scattered points of high intensity and all other locations being low intensity. This saliency map likely diverges from the real gaze distribution because of the limited sample size of fixation points. When testing greater fixation point sample sizes, we see that on the limit of infinite sample size, the saliency map would converge to a smooth probability distribution rather than a discrete point cloud.
 
-Thus, if we wish to obtain a better estimate of the real gaze distribution, we should blur the saliency map with a Gaussian kernel to obtain a smoother probability distribution. This step is referred to as "regularization". Note that it is convention to set the size of the Gaussian kernel to a pixel value equivalent to one degree of visual angle in length from the human subject's perspective. See Figure 1 for an illustrative example of both speckled and regularized saliency maps.
+Thus, if we wish to obtain a better estimate of the real gaze distribution, we should blur the saliency map with a Gaussian kernel to obtain a smoother probability distribution. This step is referred to as "regularization." Note that it is convention to set the size of the Gaussian kernel to a pixel value equivalent to one degree of visual angle in length from the human subject's perspective. See Figure 1 for an illustrative example of both speckled and regularized saliency maps.
 
 If we perform these regularization steps on collected fixations from human subjects for an image, the resulting regularized saliency map is our best proxy for the real gaze distribution. We will refer to this as a "real map" for brevity.
 
@@ -255,9 +255,9 @@ With the real map as an upper reference point for prediction accuracy, we seek a
 
 An ideal lower reference point should account for biases in gaze behavior present in the dataset of images, but should not account for any individual image's contents. This will allow us to see what information the gaze prediction model can inference from an image directly, beyond any general assumptions the model might make based on previous experience with the dataset or class of images.
 
-For datasets exceeding a certain sample size, an adequate lower reference point can be computed by collecting all fixation points for the entire dataset of interest at once and regularizing similar to the real map. The process will produce an average of all fixations across all images in the dataset. In gaze prediction research, this is usually referred to as the "center bias", due to the prevalent tendency of most human subjects (and therefore datasets of human gaze behavior) to fixate towards the center of an image. The center bias will account for dataset-wide biases, and as the number of images in the dataset increases, the weight of any individual image's fixations will trend towards zero. This fulfills our requirements for a lower reference point. As an example from our dataset, the center bias is shown in Figure 2.
+For datasets exceeding a certain sample size, an adequate lower reference point can be computed by collecting all fixation points for the entire dataset of interest at once and regularizing similar to the real map. The process will produce an average of all fixations across all images in the dataset. In gaze prediction research, this is usually referred to as the "center bias," due to the prevalent tendency of most human subjects (and therefore datasets of human gaze behavior) to fixate towards the center of an image. The center bias will account for dataset-wide biases, and as the number of images in the dataset increases, the weight of any individual image's fixations will trend towards zero. This fulfills our requirements for a lower reference point. As an example from our dataset, the center bias is shown in Figure 2.
 
-Using metrics for comparison compiled by Zoya Bylinskii, Tilke Judd, Aude Olivia, Antonio Torralba and Frédo Durand @saliency-metrics, we can measure the accuracy of a model's predictions. Each metric is categorized as either "location-based" or "distribution-based", meaning they either compute a score between a saliency map and fixation points, or between two saliency maps, respectively. We evaluate the qualities and usefulness of each metric for our study in the "Method" section.
+Using metrics for comparison compiled by Zoya Bylinskii, Tilke Judd, Aude Olivia, Antonio Torralba, and Frédo Durand @saliency-metrics, we can measure the accuracy of a model's predictions. Each metric is categorized as either "location-based" or "distribution-based," meaning they either compute a score between a saliency map and fixation points, or between two saliency maps, respectively. We evaluate the qualities and usefulness of each metric for our study in the "Method" section.
 
 Using these metrics, along with the real map and center bias, we can conclude a decrease in accuracy of a model's predictions when the normalized score (between the range of the real map and center bias) of the prediction falls.
 
@@ -278,7 +278,7 @@ We find this leave-one-out policy to have marginal impact on our dataset as well
     image("real_map_example.png", width: 150pt),
   ),
   caption: [
-    An illustrative example of a 'speckled' saliency map and its regularization. To the left is the speckled saliency map with 15 randomly placed fixation points, and a regularized saliency map produced by smoothing using a gaussian blur to the right.
+    An illustrative example of a "speckled" saliency map and its regularization. On the left is the speckled saliency map with 15 randomly placed fixation points, and a regularized saliency map produced by smoothing using a Gaussian blur is on the right.
   ],
 )
 
@@ -377,7 +377,7 @@ We find that all transformations except for `Mirroring` cause both models' predi
 
 These results confirm our general hypothesis that digital transformations will degrade the model's prediction accuracy. However, for the specific case of the `Mirroring` transformation, the model's prediction accuracy is mostly unaffected. The results tell us that it is likely that models will require additional training on data collected for transformed images (excluding `Mirroring`) in order to mitigate performance degradation.
 
-Next, we hope to find heuristics that will allow us to quickly explore for transformations which will require additional training. For the second step of our study, we find only a few strong correlations. For most transformations there exists a strong correlation (above 0.5 for both DeepGaze IIE and UNISAL, as per our "Method" section) between untransformed and transformed NSS scores. This holds true for all transformations except the `ContrastChange_1`, `ContrastChange_2` `Rotation_2`, and `Shearing_3` transformations. We notice that UNISAL performs especially poorly on the contrast change transformations, even though DeepGaze IIE performs well. See Figure 7 for a scatterplot of all images in the dataset on axes of untransformed and transformed NSS scores, and a correlation coefficient for each transformation and model.
+Next, we hope to find heuristics that will allow us to quickly explore for transformations which will require additional training. For the second step of our study, we find only a few strong correlations. For most transformations there exists a strong correlation (above 0.5 for both DeepGaze IIE and UNISAL, as per our "Method" section) between untransformed and transformed NSS scores. This holds true for all transformations except the `ContrastChange_1`, `ContrastChange_2`, `Rotation_2`, and `Shearing_3` transformations. We notice that UNISAL performs especially poorly on the contrast change transformations, even though DeepGaze IIE performs well. See Figure 7 for a scatterplot of all images in the dataset on axes of untransformed and transformed NSS scores, and a correlation coefficient for each transformation and model.
 
 The relationships between untransformed and transformed IG scores displays similar but weaker patterns compared to the relationships with NSS scores. As with NSS, the IG metric fell below our threshold for a strong correlation for the `ContrastChange_1`, `ContrastChange_2`, `Rotation_2`, and `Shearing_3`. Additionally, it the IG metric fell below the threshold for the `Boundary`, `MotionBlur_1`, `MotionBlur_2`, `Rotation_1`, and `Shearing_2`. See Figure 8 for a similar plot to Figure 7 but with IG instead of NSS scores.
 
@@ -414,12 +414,12 @@ We save all metrics and data gathered in our study in the `results` directory of
 
 #figure(
   image("correlation_ig.png", width: 380pt),
-  caption: [IG correlation between untransformed and transformed images. As with figure 7, we plot a point for each image for both models, where its horizontal and vertical position are determined by the untransformed and transformed NSS scores, respectively. We plot UNISAL with light red and DeepGaze IIE with dark blue. We then plot a line of best fit for both sets of points.]
+  caption: [IG correlation between untransformed and transformed images. As with Figure 7, we plot a point for each image for both models, where its horizontal and vertical position are determined by the untransformed and transformed NSS scores, respectively. We plot UNISAL with light red and DeepGaze IIE with dark blue. We then plot a line of best fit for both sets of points.]
 )
 
 #figure(
   image("correlation_cc.png", width: 260pt),
-  caption: [CC metric between untransformed and transformed saliency maps, related to NSS metric for transformed images. As with figures 7 and 8, we plot a point for each image for both models, where its horizontal position is determined by the CC score between untransformed and transformed prediction saliency maps. The vertical position is determined by the transformed NSS score. We plot UNISAL with light red and DeepGaze IIE with dark blue. We then plot a line of best fit for both sets of points.]
+  caption: [CC metric between untransformed and transformed saliency maps, related to NSS metric for transformed images. As with Figures 7 and 8, we plot a point for each image for both models, where its horizontal position is determined by the CC score between untransformed and transformed prediction saliency maps. The vertical position is determined by the transformed NSS score. We plot UNISAL with light red and DeepGaze IIE with dark blue. We then plot a line of best fit for both sets of points.]
 )
 
 = CONCLUSION
@@ -435,5 +435,5 @@ To the extent that CAT2000 @cat2000 and other gaze prediction datasets are repre
 
 For future work, we would like to test a greater number of transformations, including distortions, color manipulations, stylistic filters, and compositions of all the above. We would also like to study the characteristics of potential label-preserving transformations in greater detail. Finally, we would like to test transformations with more rigorous definitions of "intensity", at a granular level such that we can more accurately elucidate trends in performance as we increase the intensity of the transformation.
 
-#set par(spacing: 24pt, leading: 12pt)
+#set par(spacing: double_spaced, leading: single_spaced)
 #bibliography("thesis.bib", title: "REFERENCES")
