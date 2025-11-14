@@ -1,0 +1,61 @@
+\section{Results}
+\label{sec:results}
+
+We find that all transformations except for \verb|Mirroring| suffer performance loss of 5 to 95 percentage points of the range between the real distribution and the center bias, depending on model and transformation type. This holds true for both the NSS and IG metrics. While both models perform better than the center bias for untransformed images, they perform worse than the center bias for many transformations. For similar transformations at differing intensities (\eg \verb|ContrastChange_1| and \verb|ContrastChange_2|), an increase in the intensity of the transformation leads to a loss in prediction accuracy. Figures 3 and 4 plot each model's NSS and IG scores respectively.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/degradation_nss.png}
+    \caption{Each plot represents a group of similar transformations ordered by inceasing intensity, with a label above the plot describing the transformations. The untransformed set is prepended to each group. For transformation and each model, we plot the NSS score normalized to the range of the real distribution and the center bias NSS scores, where the real distribution is set to a value of one and the center bias is set to a value of zero. We color the UNISAL plot light red and the DeepGaze IIE plot dark blue. We list the change in normalized value from untransformed to most intense transformation for each model at the top of each plot.}
+    \label{fig:short}
+\end{figure*}
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/degradation_ig.png}
+    \caption{As with Figure 3, each plot represents a group of similar transformations ordered by increasing intensity, with a label above the plot describing the transformations. The untransformed set is prepended to each group. For each transformation and each model, we plot the IG score normalized to the range of the real distribution and the center bias IG scores, where the real distribution is set to a value of one and the center bias is set to a value of zero. We color the UNISAL plot light red and the DeepGaze IIE plot dark blue. We list the change in normalized value from untransformed to most intense transformation for each model at the top of each plot.}
+    \label{fig:short}
+\end{figure*}
+
+These results confirm our general hypothesis that digital transformations will degrade the model's prediction accuracy. However, for the specific case of the \verb|Mirroring| transformation, the model's prediction accuracy is mostly unaffected. The results tell us that it is likely that models will require additional training on data collected for transformed images (excluding \verb|Mirroring|) in order to mitigate performance degradation.
+
+\subsection{Results for second part involving loss indicators}
+
+Next, we hope to find heuristics that will allow us to quickly explore for transformations which will require additional training. For the second step of our study, we find only a few strong correlations. For most transformations there exists a strong correlation (above 0.5 for both DeepGaze IIE and UNISAL, as per our "Method" section) between untransformed and transformed NSS scores. This holds true for all transformations except the \verb|ContrastChange_1|, \verb|ContrastChange_2|, \verb|Rotation_2|, and \verb|Shearing_3| transformations. We notice that UNISAL performs especially poorly on the contrast change transformations, even though DeepGaze IIE performs well. See Figure 5 for a scatterplot of all images in the dataset on axes of untransformed and transformed NSS scores, and a correlation coefficient for each transformation and model.
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.8\linewidth]{figures/correlation_nss.png}
+    \caption{NSS correlation between untransformed and transformed images. For both models, we plot a point for each image, where its horizontal and vertical position are determined by the untransformed and transformed NSS scores, respectively. We plot UNISAL with light red and DeepGaze IIE with dark blue. We then plot a line of best fit for both sets of points.}
+    \label{fig:short}
+\end{figure*}
+
+The relationships between untransformed and transformed IG scores displays similar but weaker patterns compared to the relationships with NSS scores. As with NSS, the IG metric fell below our threshold for a strong correlation for the \verb|ContrastChange_1|, \verb|ContrastChange_2|, \verb|Rotation_2|, and \verb|Shearing_3|. Additionally, it the IG metric fell below the threshold for the \verb|Boundary|, \verb|MotionBlur_1|, \verb|MotionBlur_2|, \verb|Rotation_1|, and \verb|Shearing_2|. See Figure 6 for a similar plot to Figure 5 but with IG instead of NSS scores.
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.8\linewidth]{figures/correlation_ig.png}
+    \caption{IG correlation between untransformed and transformed images. As with Figure 5, we plot a point for each image for both models, where its horizontal and vertical position are determined by the untransformed and transformed NSS scores, respectively. We plot UNISAL with light red and DeepGaze IIE with dark blue. We then plot a line of best fit for both sets of points.}
+    \label{fig:short}
+\end{figure*}
+
+For all transformations which degraded by 30\% or greater for the IG metric for the first step of our study (for both models), the strongest intensities of the same transformation fail our threshold for strong correlation (for NSS or IG). Additionally, the \verb|Boundary| transformation displays a weak correlation, though it does not degrade by 30\% or more in the first step. We find no other patterns between the data gathered in the first and second steps of our study.
+
+From the above data, we conclude that an increase in prediction accuracy for untransformed images correlates with an increase in prediction accuracy for almost all transformations. This tells us that, even in the absence of a more effective strategy, investing greater amounts of data and compute into existing training techniques will improve performance for both untransformed and transformed images.
+
+For transformations with weaker correlation coefficients, the relationship seems to be nonlinear to some extent. We infer that the first step's performance degradation indicates a drop-off in accuracy increase for those transformations with weak correlations. For such transformations, untransformed accuracy improvements greatly outpace those seen in transformed accuracy. These transformations indicate the need for a targeted training plan that addresses the performance degradation seen in the transformation. 
+
+Besides the correlations mentioned above, only one other correlation passes our threshold for both DeepGaze IIE and UNISAL: that between the CC metric across the predictions for the untransformed and transformed images, and the NSS metric for the transformed image. See Figure 7.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.8\linewidth]{figures/correlation_cc.png}
+    \caption{CC metric between untransformed and transformed saliency maps, related to NSS metric for transformed images. As with Figures 5 and 6, we plot a point for each image for both models, where its horizontal position is determined by the CC score between untransformed and transformed prediction saliency maps. The vertical position is determined by the transformed NSS score. We plot UNISAL with light red and DeepGaze IIE with dark blue. We then plot a line of best fit for both sets of points.}
+    \label{fig:onecol}
+\end{figure}
+
+This final correlation seems to indicate that, for the contrast change metrics specifically, the greater the similarity of the prediction for the transformed image and that for the untransformed image, the more accurate the prediction for the transformed image is. We might hypothesize this effect is due to image features not changing location, nor changing in relative emphasis or contrast, after a contrast change transformation. This means the real gaze distribution should remain unaffected, and so should the prediction. However, there are transformations which we might also intuitively believe to exhibit little change in real gaze distribution, such as noise and compression, which do not exhibit similar correlations.
+
+Transformations which do not effect gaze distributions are called "label-preserving" by Che \etal \cite{gaze-transformations}. This is because machine learning domains would call the associated gaze distributions the "labels" of our image data. We invite future work to study label-preserving transformations as a class of transformations which may have unique characteristics which allow unique heuristics, such as the CC metric.
+
+The metrics and data gathered in our study, along with the code used to compute them and produce visualizations, will be made pubicly available.

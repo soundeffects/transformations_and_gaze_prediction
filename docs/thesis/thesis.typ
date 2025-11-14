@@ -81,7 +81,7 @@
   Using saccadic fixation points collected on images and digital transformations of those images, we show that common transformations--including cropping, rotation, contrast adjustment, and noise--degrade prediction accuracy for state-of-the-art gaze fixation prediction models. We fail to find any heuristics which indicate the degradation of prediction accuracy for arbitrary image transformations. Our work emphasizes the need for more varied training data for gaze prediction models.
 ]
 #let committee_chair = "Rogelio E. Cardona-Rivera"
-#let committee_second = "Paul A. Rosen"
+#let committee_second = "Paul Andrew Rosen"
 #let committee_third = "Cem Yuksel"
 #let department_chair = "Mary W. Hall"
 #let graduate_dean = "Darryl P. Butt"
@@ -342,9 +342,7 @@ We recognize that these metrics do not represent an exhaustive list of all possi
 
 We wish to find a correlation between any pair of independent and dependent variable. There are 10 possible pairs between these variables, and so we will plot the 10 pairs and compute 10 correlation coefficients for each transformation. We will interpret any relationship with a Pearson's correlation coefficient above 0.5 for both the DeepGaze IIE and UNISAL models as a strong enough relationship to be useful as a heuristic.
 
-As we plot the data, we find that some outliers exist. We filter any sample which falls beyond three standard deviations from the mean for either the independent or the dependent variable in each plot. These samples are also omitted from the correlation coefficient calculations.
-
-We publish the code for our experiment at our repository on Codeberg @our-code.
+As we plot the data, we find that some outliers exist. We filter any sample which falls beyond three standard deviations from the mean for either the independent or the dependent variable in each plot. These samples are also omitted from the correlation coefficient calculations. We publish the code for our experiment at our repository on Codeberg @our-code.
 
 #pagebreak()
 

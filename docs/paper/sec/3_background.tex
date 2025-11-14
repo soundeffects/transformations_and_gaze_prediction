@@ -1,0 +1,18 @@
+\section{Background}
+\label{sec:background}
+
+We model our gaze distributions for images as two-dimensional probability densities, as described by Matthias K{\"u}mmerer, Thomas S. A. Wallis, and Matthias Bethge \cite{information-gain}. For each pixel of the image, we assign a probability that a viewer's gaze fixates on that pixel, under free-viewing conditions (meaning no task has been assigned to the viewer).
+
+When collecting data from human subjects, we collect a set of fixation points at various pixels of the image. Each fixation point increases the probability of the pixel it lands on, and we additionally regularize the probability density by convolving with a Gaussian blur kernel, such that it better models the smoother distribution we might expect to see when approaching the limit of collecting infinite fixation points. Convention dictates that the kernel size is set to a number of pixels corresponding to one degree of viewing visual angle, which according to Che \etal \cite{gaze-transformations} is 57 pixels for the data they collected.
+
+Gaze prediction models are expected to compute a saliency map for an image using only the image's contents--they will not have access to any fixation points. Using metrics for comparison of gaze distributions compiled by Zoya Bylinskii, Tilke Judd, Aude Olivia, Antonio Torralba, and Frédo Durand \cite{saliency-metrics}, we can measure the accuracy of a model's predictions by the metric scores computed between the prediction and the real distribution, or the scores for both when compared to a common baseline.
+
+We follow K{\"u}mmerer \etal \cite{information-gain} in using a common baseline called the "center bias", which can be computed as a gaze distribution collecting all fixation points in the dataset, rather than just those of a single image. The center bias should capture dataset biases, and if used as a baseline, can reward predictions that are based on the content of the image rather than overfitting for dataset biases.
+
+\subsection{Note on other techniques}
+
+We recognize that K{\"u}mmerer \etal \cite{information-gain} describe further techniques, both for improving the predictive performance of center biases, and for making comparisons between predictions and either real distributions or center biases more fair. Together, these serve to produce more realistic measurements of progress in the field of gaze prediction, but they do not change the characteristics of the real distribution and the center bias which we utilize in our study.
+
+We use the real distribution and the center bias as relative reference points. With these reference points, we can separate two types of decreases in prediction metric scores we might see: a decrease due to destruction of image information, or a decrease due to model inadequacy. An example of destruction of image information occurs with the blurring transformation, which filters out high frequency details, producing less coherent fixation points that can expect lower metric scores. If prediction metric scores decrease due to information destruction, the real distribution and center bias should also decrease in their metric scores. For decreases due to model inadequacy, the real distribution and center bias scores should not decrease.
+
+Applying the techniques K{\"u}mmerer \etal \cite{information-gain} describe does not serve the purpose of our two reference points, and so we opt against the additional complexity.

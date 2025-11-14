@@ -51,7 +51,7 @@ def all_fixation_point_averages(logging: bool = False) -> Table:
     """
     return fixation_point_averages(['deepgaze_1024_576', 'deepgaze_1920_1080', 'unisal_384_224', 'unisal_384_288', 'unisal_384_216', 'unisal_1920_1080'], logging=logging)
 
-def correlation_metrics(model: str, logging: bool = False) -> Table:
+def performance_correlation_metrics(model: str, logging: bool = False) -> Table:
     """
     Compute the correlation metrics (as described in section 4 of the readme) for a given model.
     """
@@ -91,6 +91,70 @@ def correlation_metrics(model: str, logging: bool = False) -> Table:
                 'reference_ig': reference_ig,
                 'transformed_nss': transformed_nss,
                 'transformed_ig': transformed_ig})
+        if logging:
+            print(f"Finished {transformation}")
+    return output
+
+def loss_correlation_metrics(model: str, logging: bool = False) -> Table:
+    """
+    Compute the correlation metrics (as described in section 4 of the readme) for a given model.
+    """
+    output = Table(['transformation', 'image_number', 'ssim', 'cc', 'kl', 'reference_nss', 'reference_ig', 'loss_nss', 'loss_ig'])
+    transformations = []
+    reference_directory = None
+    for directory in directories:
+        if 'Reference' in directory:
+            reference_directory = directory
+        else:
+            transformations.append(directory)
+    for transformation_directory in transformations:
+        transformation_centerbias = load_centerbias(transformation_directory, 57)
+        reference_centerbias = load_centerbias(reference_directory, 57)
+        for image_number in range(1, 101):
+            transformation = get_transformation_name(transformation_directory)
+            transformed_image = load_image(transformation_directory, image_number)
+            reference_image = load_image(reference_directory, image_number)
+            ssim = SSIM(reference_image, transformed_image)
+            transformed_saliency_map = load_saliency_map(transformation_directory, model, image_number, (1920, 1080))
+            reference_saliency_map = load_saliency_map(reference_directory, model, image_number, (1920, 1080))
+            real_transformed_saliency_map = load_real_saliency_map(transformation_directory, image_number)
+            real_reference_saliency_map = load_real_saliency_map(reference_directory, image_number)
+            cc = CC(transformed_saliency_map, reference_saliency_map)
+            kl = KL(reference_saliency_map, transformed_saliency_map)
+            reference_fixations = load_fixations(reference_directory, image_number)
+            transformed_fixations = load_fixations(transformation_directory, image_number)
+
+            reference_nss = NSS(reference_saliency_map, reference_fixations)
+            reference_ig = IG(reference_saliency_map, reference_centerbias, reference_fixations)
+            real_reference_nss = NSS(real_reference_saliency_map, reference_fixations)
+            real_reference_ig = IG(real_reference_saliency_map, reference_centerbias, reference_fixations)
+            centerbias_reference_nss = NSS(reference_centerbias, reference_fixations)
+            centerbias_reference_ig = 0
+            transformed_nss = NSS(transformed_saliency_map, transformed_fixations)
+            transformed_ig = IG(transformed_saliency_map, transformation_centerbias, transformed_fixations)
+            real_transformed_nss = NSS(real_transformed_saliency_map, transformed_fixations)
+            real_transformed_ig = IG(real_transformed_saliency_map, transformation_centerbias, transformed_fixations)
+            centerbias_transformed_nss = NSS(transformation_centerbias, transformed_fixations)
+            centerbias_transformed_ig = 0
+
+            normalized_reference_nss = (reference_nss - centerbias_reference_nss) / (real_reference_nss - centerbias_reference_nss)
+            normalized_reference_ig = (reference_ig - centerbias_reference_ig) / (real_reference_ig - centerbias_reference_ig)
+            normalized_transformed_nss = (transformed_nss - centerbias_transformed_nss) / (real_transformed_nss - centerbias_transformed_nss)
+            normalized_transformed_ig = (transformed_ig - centerbias_transformed_ig) / (real_transformed_ig - centerbias_transformed_ig)
+
+            loss_nss = normalized_reference_nss - normalized_transformed_nss
+            loss_ig = normalized_reference_ig - normalized_transformed_ig
+
+            output.add_row({
+                'transformation': transformation,
+                'image_number': image_number,
+                'ssim': ssim,
+                'cc': cc,
+                'kl': kl,
+                'reference_nss': reference_nss,
+                'reference_ig': reference_ig,
+                'loss_nss': loss_nss,
+                'loss_ig': loss_ig})
         if logging:
             print(f"Finished {transformation}")
     return output

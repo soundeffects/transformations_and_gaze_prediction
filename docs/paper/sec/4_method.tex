@@ -1,0 +1,35 @@
+\section{Method}
+\label{sec:method}
+
+We hypothesize that state-of-the-art models will show performance loss when comparing predictive performance on untransformed to transformed images, for the majority of transformations in the study by Che \etal \cite{gaze-transformations}. To isolate this performance loss from potential decreases in metric score due to destruction of information content after transformation, we normalize model performance to the range between the performance for the real distribution and the center bias for the corresponding transformation.
+
+The most widely adopted benchmark for gaze prediction model performance is the MIT/Tuebingen Saliency Benchmark \cite{mit-tuebingen} \cite{made-easy}. We select two high-scoring models on the benchmark as our state-of-the-art. The first is the current top contender, DeepGaze IIE; from Akis Linardos, Matthias Kümmerer, Ori Press, and Matthias Bethge \cite{deepgazeiie}. The second is a runner-up, UNISAL; from Richard Droste, Jianbo Jiao, and J. Alison Noble \cite{unisal}. UNISAL was selected because of its small memory footprint and fast inference speed, which are useful in specific applications.
+
+From the metrics compiled by Bylinskii \etal \cite{saliency-metrics}, we select for those which are easily computable, do not require altering our gaze distributions, are not saturated on benchmarks, and do not significantly overlap with other selected metrics. This returns the normalized scanpath saliency (NSS) \cite{nss}, information gain (IG) \cite{information-gain}, image-based Pearson correlation coefficient (CC), and image-based Kullback-Leibler divergence (KL) metrics.
+
+NSS and IG metrics are referred to by Bylinskii \etal as "location-based", comparing distributions with fixation points, whereas the other two are "distribution-based", comparing two distributions. We will prefer location-based metrics when possible because they are parameter-free: they do not expect a Gaussian blur kernel size for regularization. When using distribution-based metrics, we will ensure that the Gaussian blur kernel size is implicitly the same (comparing two prediction distributions from the same model).
+
+\subsection{First part involving performance loss}
+
+We compute real distributions for each image and center biases for each transformation in our dataset. Deep learning gaze prediction models tend to perform best when input images are of a similar resolution to what they were trained on, so we test a few different input resolutions for each model when computing its predictions. We select for the best performing resolution after computing NSS and IG scores for all real distributions, center biases, and prediction distributions.
+
+We test a $1920\times1080$ resolution for each model, since that is the native resolution of the dataset. We then test a scaled down resolution of $1024\times576$ for DeepGaze IIE \cite{deepgazeiie}, because the authors recommend a width of 1024 for inputs. For UNISAL, we test a few of the resolutions found in its training datasets, including $384\times224$ (DHF1K \cite{dhf1k} resolution), $384\times288$ (SALICON \cite{salicon} resolution), and $384\times216$ (width of the previous two while preserving dataset aspect ratio). We find that DeepGaze IIE performs best with $1024\times576$, and UNISAL performs best with $384x224$, on average. Note that we scale all model outputs back up to $1920\times1080$ when measuring performance.
+
+Finally, we normalize the prediction metric scores into a range such that a score equal to that of the center bias for the corresponding transformation becomes zero, and a score equal to that of the real distribution for the corresponding transformation becomes one. This will isolate the performance loss due to model inadequacy from the performance loss due to information destruction, and will also allow us to easily compare performance loss between transformations.
+
+\subsection{Second part involving loss indicators}
+
+Assuming we see performance loss in the first part of the study, we wish to identify correlates of performance loss which can be computed without the costly collection of gaze distribution data. We select a set of variables which do not require collection of gaze distribution data for arbitrary transformations to measure, and compute correlation between those and the dependent variables which measure performance on transformed images.
+
+For our independent variables, we hypothesize that we might see significant correlations for NSS and IG scores for predictions on the untransformed image, CC and KL scores between the model's predictions for the untransformed and the transformed image, and the difference between the image and its transformation. We decide to measure image difference using a structural similarity index (SSIM) proposed by Zhou Wang, Alan C. Bovik, Hamid R. Sheikh, and Eero P. Simoncelli \cite{ssim}. Note that although some of these variables require gaze distribution data for the untransformed set of images, none require gaze distribution data for the transformed set. Our dependent variables will be the NSS and IG scores for model's prediction on the transformed image.
+
+We wish to find a correlation between any pair of independent and dependent
+variable. There are 10 possible pairs between these variables, and so we will
+plot the 10 pairs and compute 10 correlation coefficients for each
+transformation. We will interpret any relationship with a Pearson's correlation
+coefficient above 0.5 for both the DeepGaze IIE and UNISAL models as a strong
+enough relationship to be useful indicator.
+
+As we plot the data, we find that some outliers exist. We filter any sample
+which falls beyond three standard deviations from the mean for either the
+independent or the dependent variable.

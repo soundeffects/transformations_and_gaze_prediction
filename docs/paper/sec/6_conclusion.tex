@@ -1,0 +1,14 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+For all transformations except \verb|Mirroring|, both DeepGaze IIE and UNISAL models perform worse than the untransformed set of images. Increasing the intensity of the transformation leads to further loss in prediction accuracy. Losses in prediction accuracy are measured relative to the real map and center bias, and so these losses are not attributable to loss of image information content due to the transformation.
+
+Even so, there is usually a correlation between prediction accuracy on an untransformed image and prediction accuracy on a transformed image. A minority of transformations display weak correlations, and for these transformations the models usually suffer higher loss in prediction accuracy. We are assured that a greater amount of data and compute applied to existing training techniques will improve performance across the board for both untransformed and transformed images. Even so, we anticipate that some transformations may require a more targeted training plan in order to mitigate relatively weak performance.
+
+We find that for the contrast change transformations only, the image-based correlation coefficient between the predictions for an untransformed image and its transformation is a heuristic for predicting the performance of a model on transformed images. In this unique case, one can infer some information about a model's performance on contrast-changed images without gathering human trial data. We refer to transformations which display this behavior as label-preserving.
+
+Our work concludes that current state-of-the-art gaze prediction models cannot be confidently assumed to generalize to several image classes outside of those seen in their training data. Because many of the transformations we studied are commonly used in digital media production, we raise concerns when applying gaze prediction models to many classes of images in digital media.
+
+To the extent that CAT2000 \cite{cat2000} and other gaze prediction datasets are representative of image classes of interest to an arbitrary application, we have shown that performance will degrade for those image classes when common digital image transformations are applied. Alternatively, if we assume that CAT2000 is not representative of an area of interest, there is almost no data to show how well the models will perform for those image classes, and so confidence remains low.
+
+For future work, we would like to test a greater number of transformations, including distortions, color manipulations, stylistic filters, and compositions of all the above. We would also like to study the characteristics of potential label-preserving transformations in greater detail. Finally, we would like to test transformations with more rigorous definitions of "intensity", at a granular level such that we can more accurately elucidate trends in performance as we increase the intensity of the transformation.
