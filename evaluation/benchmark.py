@@ -159,6 +159,9 @@ def loss_correlation_metrics(model: str, logging: bool = False) -> Table:
             print(f"Finished {transformation}")
     return output
 
+
+loss_correlation_metrics("unisal_384_224", logging=True).to_csv(output_path="unisal_benchmark.csv")
+
 def best_resolution_unisal(csv_path: str) -> None:
     """
     Find the best resolution for the UNISAL model, given a csv file of benchmark results.

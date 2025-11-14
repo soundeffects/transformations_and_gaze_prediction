@@ -110,7 +110,8 @@ def pairwise_correlations(
     deepgaze_csv_file: str,
     independent_variable: str,
     dependent_variable: str,
-    z_score_threshold: float = 3.0
+    z_score_threshold: float = 3.0,
+    title: str | None = None
 ) -> None:
     unisal_x = {}
     unisal_y = {}
@@ -166,6 +167,8 @@ def pairwise_correlations(
         axis.set_xlim(min_x, max_x)
         axis.set_ylim(min_y, max_y)
     pyplot.subplots_adjust(wspace=0.3, hspace=0.7)
+    if title:
+        pyplot.title(title)
     pyplot.show()
 
 def strong_pairwise_correlations() -> None:
@@ -192,4 +195,15 @@ def all_pairwise_correlations() -> None:
                 dependent_variable
             )
 
-strong_pairwise_correlations()
+def all_loss_pairwise_correlations() -> None:
+    for independent_variable in ['ssim', 'cc', 'kl', 'reference_nss', 'reference_ig']:
+        for dependent_variable in ['loss_nss', 'loss_ig']:
+            pairwise_correlations(
+                "../results/unisal_loss_correlation_metrics.csv",
+                "../results/deepgaze_loss_correlation_metrics.csv",
+                independent_variable,
+                dependent_variable,
+                title=f"{independent_variable} vs {dependent_variable}"
+            )
+
+all_loss_pairwise_correlations()
