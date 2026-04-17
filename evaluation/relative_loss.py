@@ -1,7 +1,7 @@
 from csv import DictReader, DictWriter
 
 performance_data = {}
-with open("../results/relative_loss.csv", 'r', newline='') as csvfile:
+with open("../results/selected_performance.csv", 'r', newline='') as csvfile:
     reader = DictReader(csvfile)
     for row in reader:
         if row["transformation"] not in performance_data:
@@ -37,7 +37,7 @@ for transformation in performance_data.keys():
 
     print(f"{transformation} & {deepgaze_median_nss_delta:.2%} & {deepgaze_median_ig_delta:.2%} & {unisal_median_nss_delta:.2%} & {unisal_median_ig_delta:.2%} \\\\")
 
-with open("../results/relative_loss_next.csv", "w", newline="") as csvfile:
+with open("../results/relative_loss.csv", "w", newline="") as csvfile:
     writer = DictWriter(csvfile, ["transformation", "deepgaze_median_nss_delta", "deepgaze_median_ig_delta", "unisal_median_nss_delta", "unisal_median_ig_delta"])
     writer.writeheader()
     writer.writerows(relative_loss_data)
