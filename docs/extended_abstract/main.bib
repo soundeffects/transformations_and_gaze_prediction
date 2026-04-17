@@ -65,13 +65,20 @@
     year={2012}
 }
 
-@article{
-    cat2000,
-    title={CAT2000: a large scale fixation dataset for boosting saliency research},
-    author={Ali Borji and Laurent Itti},
-    year={2015},
-    journal={ArXiv},
-    doi={10.48550/arXiv.1505.03581}, 
+@article{cat2000,
+  author       = {Ali Borji and
+                  Laurent Itti},
+  title        = {{CAT2000:} {A} Large Scale Fixation Dataset for Boosting Saliency
+                  Research},
+  journal      = {CoRR},
+  volume       = {abs/1505.03581},
+  year         = {2015},
+  url          = {http://arxiv.org/abs/1505.03581},
+  eprinttype   = {arXiv},
+  eprint       = {1505.03581},
+  timestamp    = {Mon, 13 Aug 2018 16:48:59 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/BorjiI15.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
 }
 
 @article{
@@ -107,14 +114,22 @@
     pages={2287–2300}
 }
 
-@inproceedings{
-    deepgazeiie,
-    author={Akis Linardos and Matthias Kümmerer and Ori Press and Matthias Bethge},
-    booktitle={International Conference on Computer Vision}, 
-    title={DeepGaze IIE: calibrated prediction in and out-of-domain for state-of-the-art saliency modeling}, 
-    year={2021},
-    pages={12899-12908},
-    doi={10.1109/ICCV48922.2021.01268}
+@article{deepgazeiie,
+  author       = {Akis Linardos and
+                  Matthias K{\"{u}}mmerer and
+                  Ori Press and
+                  Matthias Bethge},
+  title        = {Calibrated prediction in and out-of-domain for state-of-the-art saliency
+                  modeling},
+  journal      = {CoRR},
+  volume       = {abs/2105.12441},
+  year         = {2021},
+  url          = {https://arxiv.org/abs/2105.12441},
+  eprinttype   = {arXiv},
+  eprint       = {2105.12441},
+  timestamp    = {Tue, 01 Jun 2021 18:07:59 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-2105-12441.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
 }
 
 @article{
@@ -128,17 +143,24 @@
     doi = "10.1146/annurev-vision-120822-072528",
   }
 
-@inbook{
-    unisal,
-    title={Unified image and video saliency modeling},
-    ISBN={9783030585587},
-    ISSN={1611-3349},
-    DOI={10.1007/978-3-030-58558-7_25},
-    booktitle={European Conference on Computer Vision},
-    author={Droste, Richard and Jiao, Jianbo and Noble, J. Alison},
-    year={2020},
-    pages={419–435}
+@InProceedings{unisal,
+author="Droste, Richard
+and Jiao, Jianbo
+and Noble, J. Alison",
+editor="Vedaldi, Andrea
+and Bischof, Horst
+and Brox, Thomas
+and Frahm, Jan-Michael",
+title="Unified Image and Video Saliency Modeling",
+booktitle="Computer Vision -- ECCV 2020",
+year="2020",
+publisher="Springer International Publishing",
+address="Cham",
+pages="419--435",
+abstract="Visual saliency modeling for images and videos is treated as two independent tasks in recent computer vision literature. While image saliency modeling is a well-studied problem and progress on benchmarks like SALICON and MIT300 is slowing, video saliency models have shown rapid gains on the recent DHF1K benchmark. Here, we take a step back and ask: Can image and video saliency modeling be approached via a unified model, with mutual benefit? We identify different sources of domain shift between image and video saliency data and between different video saliency datasets as a key challenge for effective joint modelling. To address this we propose four novel domain adaptation techniques---Domain-Adaptive Priors, Domain-Adaptive Fusion, Domain-Adaptive Smoothing and Bypass-RNN---in addition to an improved formulation of learned Gaussian priors. We integrate these techniques into a simple and lightweight encoder-RNN-decoder-style network, UNISAL, and train it jointly with image and video saliency data. We evaluate our method on the video saliency datasets DHF1K, Hollywood-2 and UCF-Sports, and the image saliency datasets SALICON and MIT300. With one set of parameters, UNISAL achieves state-of-the-art performance on all video saliency datasets and is on par with the state-of-the-art for image saliency datasets, despite faster runtime and a 5 to 20-fold smaller model size compared to all competing deep methods. We provide retrospective analyses and ablation studies which confirm the importance of the domain shift modeling. The code is available at https://github.com/rdroste/unisal.",
+isbn="978-3-030-58558-7"
 }
+
 
 @inproceedings{
     dhf1k,

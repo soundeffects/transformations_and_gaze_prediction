@@ -20,10 +20,10 @@ dataset.zip
 docs/thesis/*.pdf
 
 # LaTeX auxilliary files
-docs/paper/*.pdf
-docs/paper/*.aux
-docs/paper/*.bbl
-docs/paper/*.blg
-docs/paper/*.brf
-docs/paper/*.log
-docs/paper/*.out
+*.pdf
+*.aux
+*.bbl
+*.blg
+*.brf
+*.log
+*.out
